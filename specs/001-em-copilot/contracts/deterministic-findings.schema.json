@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/em-copilot/deterministic-findings.schema.json",
+  "title": "DeterministicFindings",
+  "description": "Output of the deterministic rule engine for one squad. Health classification is authoritative; AI must not override.",
+  "type": "object",
+  "required": ["squadId", "health", "deliveryRisks", "blockers", "hygieneFindings", "flowSignals", "managerActions"],
+  "additionalProperties": false,
+  "properties": {
+    "squadId": { "type": "string" },
+    "health": {
+      "type": "object",
+      "required": ["status", "reasons", "deliveryRiskCount"],
+      "properties": {
+        "status": { "enum": ["On Track", "Needs Attention", "At Risk"] },
+        "reasons": { "type": "array", "items": { "type": "string" } },
+        "deliveryRiskCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "keyFacts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "deliveryRisks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/deliveryRisk" }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/blocker" }
+    },
+    "hygieneFindings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/hygieneFinding" }
+    },
+    "flowSignals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/flowSignal" }
+    },
+    "managerActions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/managerAction" }
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dataLimitation" }
+    }
+  },
+  "$defs": {
+    "deliveryRisk": {
+      "type": "object",
+      "required": ["category", "issueKeys", "evidence", "impact", "recommendedAction", "impactScore"],
+      "properties": {
+        "category": {
+          "enum": [
+            "staleInProgress",
+            "noRecentUpdate",
+            "unownedBlocker",
+            "unassignedCritical",
+            "lateStart",
+            "crossSquadDependency",
+            "subtaskInconsistency",
+            "statusThrash",
+            "unplannedScope"
+          ]
+        },
+        "issueKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "impact": { "type": "string" },
+        "recommendedAction": { "type": "string" },
+        "impactScore": { "type": "number" }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "required": ["issueKey"],
+      "properties": {
+        "issueKey": { "type": "string" },
+        "blockedByKeys": { "type": "array", "items": { "type": "string" } },
+        "dependencyOwner": { "type": ["string", "null"] },
+        "expectedResolutionDate": { "type": ["string", "null"], "format": "date" },
+        "isOwned": { "type": "boolean" }
+      }
+    },
+    "hygieneFinding": {
+      "type": "object",
+      "required": ["issueKey", "category", "evidence"],
+      "properties": {
+        "issueKey": { "type": "string" },
+        "category": {
+          "enum": [
+            "missingEstimate",
+            "missingAssignee",
+            "unclearAcceptanceCriteria",
+            "statusInconsistency",
+            "unstructuredBlockerMention",
+            "completedStillOpen",
+            "staleComments"
+          ]
+        },
+        "evidence": { "type": "string" },
+        "suggestedAction": { "type": "string" }
+      }
+    },
+    "flowSignal": {
+      "type": "object",
+      "required": ["signalType", "description"],
+      "properties": {
+        "signalType": {
+          "enum": [
+            "wipOverload",
+            "criticalConcentration",
+            "reviewBottleneck",
+            "unownedUrgentQueue",
+            "externalDependencyCluster"
+          ]
+        },
+        "description": { "type": "string" },
+        "relatedIssueKeys": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "managerAction": {
+      "type": "object",
+      "required": ["priority", "action", "relatedIssueKeys"],
+      "properties": {
+        "priority": { "type": "integer", "minimum": 1 },
+        "action": { "type": "string" },
+        "relatedIssueKeys": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "dataLimitation": {
+      "type": "object",
+      "required": ["scope", "reason"],
+      "properties": {
+        "scope": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

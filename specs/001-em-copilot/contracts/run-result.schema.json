@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/em-copilot/run-result.schema.json",
+  "title": "RunResult",
+  "description": "Machine-readable execution result emitted to stdout for Cursor run history inspection (FR-038).",
+  "type": "object",
+  "required": ["status", "workflow", "slackDelivered"],
+  "additionalProperties": false,
+  "properties": {
+    "status": { "enum": ["success", "error", "partial"] },
+    "workflow": { "enum": ["on-demand", "daily"] },
+    "slackDelivered": { "type": "boolean" },
+    "failureReason": {
+      "type": "string",
+      "description": "Machine-readable code, e.g. JIRA_AUTH_FAILED, SLACK_POST_FAILED, CONFIG_INVALID"
+    },
+    "squadsAnalyzed": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "squadsFailed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["squadId", "reason"],
+        "properties": {
+          "squadId": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "isRefresh": {
+      "type": "boolean",
+      "description": "True when daily briefing is a same-day refresh (FR-018)"
+    },
+    "reportPreview": {
+      "type": "string",
+      "description": "Optional truncated Slack markdown when slackDelivered is false"
+    }
+  }
+}

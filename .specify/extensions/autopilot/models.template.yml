@@ -1,0 +1,56 @@
+# Phase -> model routing for Spec Kit Autopilot (and phase subagents).
+#
+# Edit this file, then run:
+#   /speckit-autopilot-sync-models
+#   -or-
+#   powershell -File .specify/extensions/autopilot/scripts/Sync-ModelRouting.ps1
+#
+# Values may be:
+#   - short aliases (see aliases section below)
+#   - exact Cursor model IDs (e.g. claude-opus-4-7-thinking-xhigh)
+#   - inherit  -> use the parent chat model
+
+schema_version: "1"
+
+# How phases are executed when models differ from the parent agent:
+#   task    - parent orchestrates; each phase runs as a Task subagent with the phase model (recommended)
+#   agents  - also materialize .cursor/agents/speckit-<phase>.md binders (for /name invocation)
+execution: task
+
+# Human-friendly defaults (edit freely)
+phases:
+  constitution: opus-4.7
+  specify: opus-4.7
+  clarify: opus-4.7
+  plan: composer
+  analyze: composer
+  tasks: composer
+  implement: composer
+  checklist: composer
+  converge: composer
+  taskstoissues: inherit
+
+# Short name -> Cursor model id
+aliases:
+  inherit: inherit
+  default: inherit
+  auto: inherit
+
+  # Claude
+  opus: claude-opus-4-7-thinking-xhigh
+  opus-4.7: claude-opus-4-7-thinking-xhigh
+  "opus-4.7-xhigh": claude-opus-4-7-thinking-xhigh
+  opus-5: claude-opus-5-thinking-high
+  sonnet: claude-sonnet-5-thinking-high
+  sonnet-5: claude-sonnet-5-thinking-high
+
+  # Cursor Composer family
+  composer: composer-2.5-fast
+  composer-2.5: composer-2.5-fast
+  composer-fast: composer-2.5-fast
+
+  # Other (optional - only if entitled on your plan)
+  gemini-flash: gemini-3-flash
+  grok: cursor-grok-4.5-high-fast
+  gpt-5.5: gpt-5.5-medium
+  gpt-5.6: gpt-5.6-sol-medium

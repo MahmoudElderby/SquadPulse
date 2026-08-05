@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/em-copilot/slack-request.schema.json",
+  "title": "ParsedSlackRequest",
+  "description": "Result of parsing an on-demand Slack message per FR-010 and FR-011.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["kind", "squadId", "intent"],
+      "properties": {
+        "kind": { "const": "analysis" },
+        "rawText": { "type": "string" },
+        "normalizedSquadToken": { "type": "string" },
+        "squadId": { "type": "string" },
+        "squadDisplayName": { "type": "string" },
+        "intent": {
+          "enum": ["full", "sprint", "blockers", "stale", "hygiene", "follow-up"]
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["kind", "message"],
+      "properties": {
+        "kind": { "enum": ["unknownSquad", "unknownIntent", "ambiguousSquad"] },
+        "rawText": { "type": "string" },
+        "message": { "type": "string" },
+        "configuredSquads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["displayName", "aliases"],
+            "properties": {
+              "displayName": { "type": "string" },
+              "aliases": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "supportedIntents": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

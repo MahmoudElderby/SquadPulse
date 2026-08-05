@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/em-copilot/contextual-analysis.schema.json",
+  "title": "ContextualAnalysis",
+  "description": "AI-produced structured output validated before Slack rendering. Must not contradict deterministic health classification.",
+  "type": "object",
+  "required": ["followUpDrafts"],
+  "additionalProperties": false,
+  "properties": {
+    "keyFactsNarrative": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional narrative bullets; must not introduce unsupported facts"
+    },
+    "standUpFocusItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["squadId", "focus"],
+        "properties": {
+          "squadId": { "type": "string" },
+          "focus": { "type": "string" },
+          "relatedIssueKeys": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "description": "Daily briefing only"
+    },
+    "followUpDrafts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/followUpDraft" }
+    }
+  },
+  "$defs": {
+    "followUpDraft": {
+      "type": "object",
+      "required": ["recipientDisplayName", "issueKeys", "observation", "request", "draftType"],
+      "properties": {
+        "recipientDisplayName": { "type": "string", "minLength": 1 },
+        "issueKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "observation": { "type": "string", "minLength": 1 },
+        "request": { "type": "string", "minLength": 1 },
+        "draftType": { "enum": ["delivery", "hygiene", "dependency"] }
+      }
+    }
+  }
+}

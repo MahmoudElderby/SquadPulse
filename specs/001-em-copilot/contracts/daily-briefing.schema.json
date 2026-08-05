@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/em-copilot/daily-briefing.schema.json",
+  "title": "DailyTwoSquadBriefing",
+  "description": "Structured aggregate for the daily two-squad manager briefing before Slack rendering (FR-017, FR-018).",
+  "type": "object",
+  "required": [
+    "generatedAt",
+    "timezone",
+    "reportDate",
+    "isRefresh",
+    "squadSummaries",
+    "crossSquadPriorities",
+    "perSquadFindings",
+    "limitations"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "timezone": { "type": "string", "default": "UTC" },
+    "reportDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Calendar date of the briefing in the configured timezone"
+    },
+    "isRefresh": {
+      "type": "boolean",
+      "description": "True when this is a same-day refresh run (FR-018)"
+    },
+    "squadSummaries": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/squadSummary" }
+    },
+    "crossSquadPriorities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/crossSquadPriority" }
+    },
+    "perSquadFindings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["squadId", "findings"],
+        "properties": {
+          "squadId": { "type": "string" },
+          "findings": {
+            "$ref": "./deterministic-findings.schema.json"
+          },
+          "unavailable": {
+            "type": "boolean",
+            "description": "True when Jira fetch failed for this squad (FR-019)"
+          },
+          "unavailableReason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "standUpFocusItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["squadId", "focus"],
+        "properties": {
+          "squadId": { "type": "string" },
+          "focus": { "type": "string" },
+          "relatedIssueKeys": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "description": "From validated ContextualAnalysis; daily briefing only"
+    },
+    "followUpDrafts": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "./contextual-analysis.schema.json#/$defs/followUpDraft"
+      },
+      "description": "Merged drafts across squads; max 20 per FR-022"
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dataLimitation" }
+    }
+  },
+  "$defs": {
+    "squadSummary": {
+      "type": "object",
+      "required": ["squadId", "displayName", "oneLineStatus", "healthStatus"],
+      "properties": {
+        "squadId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "oneLineStatus": { "type": "string" },
+        "healthStatus": {
+          "enum": ["On Track", "Needs Attention", "At Risk", "Unavailable"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "crossSquadPriority": {
+      "type": "object",
+      "required": ["kind", "issueKeys", "squads", "summary", "impactScore"],
+      "properties": {
+        "kind": {
+          "enum": ["linkedIssues", "crossSquadBlockerOwner", "sharedEpic"]
+        },
+        "issueKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "squads": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "string" }
+        },
+        "impactScore": { "type": "number" },
+        "summary": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "dataLimitation": {
+      "type": "object",
+      "required": ["scope", "reason"],
+      "properties": {
+        "scope": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

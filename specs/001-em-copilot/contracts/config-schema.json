@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/em-copilot/config-schema.json",
+  "title": "EM Copilot Configuration",
+  "description": "Repository-managed configuration for Engineering Manager Copilot (MVP). Validated on every run before external calls.",
+  "type": "object",
+  "required": ["jira", "slack", "squads"],
+  "additionalProperties": false,
+  "properties": {
+    "jira": {
+      "type": "object",
+      "required": ["baseUrl"],
+      "additionalProperties": false,
+      "properties": {
+        "baseUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Jira Cloud site URL (must align with JIRA_BASE_URL secret)"
+        }
+      }
+    },
+    "slack": {
+      "type": "object",
+      "required": ["managerDestination"],
+      "additionalProperties": false,
+      "properties": {
+        "managerDestination": {
+          "type": "string",
+          "pattern": "^[CGD][A-Z0-9]+$",
+          "description": "Slack channel, private channel, or DM ID for daily briefing"
+        },
+        "onDemandReplyInThread": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, on-demand replies use the triggering thread"
+        }
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timezone": {
+          "type": "string",
+          "default": "UTC",
+          "description": "IANA timezone for schedules and rendered timestamps"
+        },
+        "workingDays": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 7 },
+          "default": [1, 2, 3, 4, 5],
+          "description": "1=Monday through 7=Sunday"
+        },
+        "dailyBriefingTime": {
+          "type": "string",
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+          "default": "08:30"
+        }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "envVarNames": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "jiraBaseUrl": { "type": "string", "default": "JIRA_BASE_URL" },
+            "jiraEmail": { "type": "string", "default": "JIRA_EMAIL" },
+            "jiraApiToken": { "type": "string", "default": "JIRA_API_TOKEN" },
+            "slackBotToken": { "type": "string", "default": "SLACK_BOT_TOKEN" }
+          }
+        }
+      }
+    },
+    "squads": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/squad" }
+    }
+  },
+  "$defs": {
+    "squad": {
+      "type": "object",
+      "required": ["id", "displayName", "projectKeys", "statusCategories", "priorityMapping"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "projectKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "scrumBoardId": { "type": "integer", "minimum": 1 },
+        "kanbanBoardId": { "type": "integer", "minimum": 1 },
+        "statusCategories": {
+          "type": "object",
+          "required": ["notStarted", "inProgress", "blocked", "reviewOrHandoff", "done"],
+          "additionalProperties": false,
+          "properties": {
+            "notStarted": { "type": "array", "items": { "type": "string" } },
+            "inProgress": { "type": "array", "items": { "type": "string" } },
+            "blocked": { "type": "array", "items": { "type": "string" } },
+            "reviewOrHandoff": { "type": "array", "items": { "type": "string" } },
+            "done": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "priorityMapping": {
+          "type": "object",
+          "required": ["P0", "P1", "P2", "P3", "P4"],
+          "additionalProperties": false,
+          "properties": {
+            "P0": { "type": "array", "items": { "type": "string" } },
+            "P1": { "type": "array", "items": { "type": "string" } },
+            "P2": { "type": "array", "items": { "type": "string" } },
+            "P3": { "type": "array", "items": { "type": "string" } },
+            "P4": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "blockerFieldId": { "type": "string" },
+        "dependencyLinkTypes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "teamMemberSlackMap": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "staleInProgressBusinessDays": { "type": "number", "minimum": 1, "default": 5 },
+            "noMeaningfulUpdateBusinessDays": { "type": "number", "minimum": 1, "default": 3 },
+            "maxInProgressPerPerson": { "type": "number", "minimum": 1, "default": 3 }
+          }
+        },
+        "schedule": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "timezone": { "type": "string" },
+            "workingDays": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 1, "maximum": 7 }
+            }
+          }
+        }
+      },
+      "anyOf": [
+        { "required": ["scrumBoardId"] },
+        { "required": ["kanbanBoardId"] }
+      ]
+    }
+  }
+}

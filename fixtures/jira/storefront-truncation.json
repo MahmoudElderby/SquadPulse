@@ -1,0 +1,25 @@
+{
+  "squadId": "storefront",
+  "displayName": "Storefront",
+  "generatedAt": "2026-08-06T08:00:00.000Z",
+  "timezone": "UTC",
+  "activeSprint": {
+    "id": 99,
+    "name": "Truncation Test",
+    "state": "active",
+    "elapsedFraction": 0.3
+  },
+  "workItems": [],
+  "retrievalMeta": {
+    "issueCount": 500,
+    "cap": 500,
+    "truncated": true,
+    "scrumScope": "active+previous sprint"
+  },
+  "limitations": [
+    {
+      "scope": "Storefront / issue retrieval",
+      "reason": "Retrieved 500 of 750 issues; analysis may be incomplete."
+    }
+  ]
+}

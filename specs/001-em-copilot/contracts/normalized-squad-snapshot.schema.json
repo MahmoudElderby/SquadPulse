@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/em-copilot/normalized-squad-snapshot.schema.json",
+  "title": "NormalizedSquadSnapshot",
+  "description": "In-memory interchange format after Jira fetch and normalization. Input to deterministic rules and AI contextual analysis.",
+  "type": "object",
+  "required": ["squadId", "displayName", "generatedAt", "workItems", "retrievalMeta"],
+  "additionalProperties": false,
+  "properties": {
+    "squadId": { "type": "string" },
+    "displayName": { "type": "string" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "timezone": { "type": "string", "default": "UTC" },
+    "activeSprint": { "$ref": "#/$defs/sprint" },
+    "previousSprint": { "$ref": "#/$defs/sprint" },
+    "workItems": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/workItem" }
+    },
+    "retrievalMeta": {
+      "type": "object",
+      "required": ["issueCount", "cap", "truncated"],
+      "properties": {
+        "issueCount": { "type": "integer", "minimum": 0 },
+        "cap": { "type": "integer", "const": 500 },
+        "truncated": { "type": "boolean" },
+        "scrumScope": { "type": "string" },
+        "kanbanScope": { "type": "string" }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dataLimitation" }
+    }
+  },
+  "$defs": {
+    "sprint": {
+      "type": "object",
+      "required": ["id", "name", "state"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "state": { "enum": ["active", "closed", "future"] },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "elapsedFraction": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "workItem": {
+      "type": "object",
+      "required": ["key", "summary", "projectKey", "boardType", "priorityTier", "statusName", "statusCategory"],
+      "properties": {
+        "key": { "type": "string" },
+        "summary": { "type": "string" },
+        "projectKey": { "type": "string" },
+        "boardId": { "type": "integer" },
+        "boardType": { "enum": ["scrum", "kanban"] },
+        "sprintIds": { "type": "array", "items": { "type": "integer" } },
+        "issueType": { "type": "string" },
+        "priorityTier": { "enum": ["P0", "P1", "P2", "P3", "P4"] },
+        "statusName": { "type": "string" },
+        "statusCategory": {
+          "enum": ["notStarted", "inProgress", "blocked", "reviewOrHandoff", "done"]
+        },
+        "assigneeDisplayName": { "type": ["string", "null"] },
+        "storyPoints": { "type": ["number", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "ageInCurrentStatusBusinessDays": { "type": "number", "minimum": 0 },
+        "daysSinceMeaningfulUpdate": { "type": "number", "minimum": 0 },
+        "parentKey": { "type": ["string", "null"] },
+        "subtaskKeys": { "type": "array", "items": { "type": "string" } },
+        "linkedIssues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "linkType"],
+            "properties": {
+              "key": { "type": "string" },
+              "linkType": { "type": "string" },
+              "otherSquadId": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "isBlockedFlag": { "type": "boolean" },
+        "addedAfterSprintStart": { "type": ["boolean", "null"] },
+        "wasInPreviousSprint": { "type": "boolean" },
+        "resolution": { "type": ["string", "null"] },
+        "labels": { "type": "array", "items": { "type": "string" } },
+        "components": { "type": "array", "items": { "type": "string" } },
+        "blockerMentionInComments": { "type": "boolean" },
+        "latestCommentExcerpt": { "type": ["string", "null"] }
+      }
+    },
+    "dataLimitation": {
+      "type": "object",
+      "required": ["scope", "reason"],
+      "properties": {
+        "scope": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

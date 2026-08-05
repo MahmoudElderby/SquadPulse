@@ -1,0 +1,22 @@
+{
+  "squadId": "storefront",
+  "displayName": "Storefront",
+  "generatedAt": "2026-08-06T08:00:00.000Z",
+  "timezone": "UTC",
+  "workItems": [
+    {
+      "key": "SF-900",
+      "summary": "Hygiene only — missing estimate",
+      "projectKey": "SF",
+      "boardType": "scrum",
+      "priorityTier": "P3",
+      "statusName": "To Do",
+      "statusCategory": "notStarted",
+      "assigneeDisplayName": "Alex Chen",
+      "storyPoints": null,
+      "ageInCurrentStatusBusinessDays": 1,
+      "daysSinceMeaningfulUpdate": 1
+    }
+  ],
+  "retrievalMeta": { "issueCount": 1, "cap": 500, "truncated": false }
+}

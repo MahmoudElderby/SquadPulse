@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "extensions": {
+    "autopilot": {
+      "version": "1.1.0",
+      "source": "local",
+      "manifest_hash": "sha256:fe1e27a4da944909346b82074c1b312d886274cdec21754e18efc86ed677eb54",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "cursor-agent": [
+          "speckit.autopilot.run",
+          "speckit.autopilot.full",
+          "speckit.autopilot.review",
+          "speckit.autopilot.sync-models"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-08-05T22:15:17.907088+00:00"
+    }
+  }
+}

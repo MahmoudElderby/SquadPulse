@@ -1,0 +1,47 @@
+schema_version: "1.0"
+
+extension:
+  id: "autopilot"
+  name: "Spec Kit Autopilot"
+  version: "1.1.0"
+  description: "Two-mode pipeline runner with per-phase model routing for Spec-Driven Development."
+  author: "MTN / Spec Kit Sandbox"
+  repository: "local://Tools/spec-kit-sandbox/extensions/speckit-autopilot"
+  license: "MIT"
+  homepage: "local://Tools/spec-kit-sandbox/extensions/speckit-autopilot"
+
+requires:
+  speckit_version: ">=0.1.0"
+  commands:
+    - "speckit.specify"
+    - "speckit.clarify"
+    - "speckit.plan"
+    - "speckit.analyze"
+    - "speckit.tasks"
+    - "speckit.implement"
+
+provides:
+  commands:
+    - name: "speckit.autopilot.run"
+      file: "commands/run.md"
+      description: "Full-auto Spec Kit pipeline with per-phase model routing."
+      aliases:
+        - "speckit.autopilot.full"
+    - name: "speckit.autopilot.review"
+      file: "commands/review.md"
+      description: "Review-mode pipeline with gates + per-phase model routing."
+    - name: "speckit.autopilot.sync-models"
+      file: "commands/sync-models.md"
+      description: "Sync models.yml into Cursor phase subagents (.cursor/agents)."
+  config:
+    - name: "models.yml"
+      template: "models.template.yml"
+      description: "Phase-to-model routing map (aliases + Cursor model IDs)."
+      required: false
+
+tags:
+  - "automation"
+  - "workflow"
+  - "sdd"
+  - "pipeline"
+  - "models"

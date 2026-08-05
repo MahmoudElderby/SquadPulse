@@ -1,0 +1,105 @@
+# Local override for Automations / personal squads (gitignored).
+# Secrets stay in Cursor Cloud Agents Secrets — only env var names below.
+jira:
+  baseUrl: https://paysky1.atlassian.net
+
+slack:
+  managerDestination: C0BN9N9LZ2A
+  onDemandReplyInThread: true
+
+schedule:
+  timezone: Africa/Cairo
+  workingDays: [1, 2, 3, 4, 5]
+  dailyBriefingTime: "08:30"
+
+secrets:
+  envVarNames:
+    jiraBaseUrl: JIRA_BASE_URL
+    jiraEmail: JIRA_EMAIL
+    jiraApiToken: JIRA_API_TOKEN
+    slackBotToken: SLACK_BOT_TOKEN
+
+squads:
+  - id: orion
+    displayName: Orion
+    aliases:
+      - orion
+    projectKeys:
+      - SF
+    scrumBoardId: 35
+    statusCategories:
+      notStarted:
+        - To Do
+        - Backlog
+      inProgress:
+        - In Progress
+        - Development
+      blocked:
+        - Blocked
+      reviewOrHandoff:
+        - In Review
+        - QA
+      done:
+        - Done
+        - Closed
+    priorityMapping:
+      P0:
+        - Highest
+        - Blocker
+      P1:
+        - High
+      P2:
+        - Medium
+      P3:
+        - Low
+      P4:
+        - Lowest
+    dependencyLinkTypes:
+      - blocks
+      - is blocked by
+    thresholds:
+      staleInProgressBusinessDays: 5
+      noMeaningfulUpdateBusinessDays: 3
+      maxInProgressPerPerson: 3
+
+  - id: payments
+    displayName: Payments
+    aliases:
+      - pay
+      - billing
+    projectKeys:
+      - PAY
+    scrumBoardId: 201
+    kanbanBoardId: 202
+    statusCategories:
+      notStarted:
+        - Open
+        - Selected for Development
+      inProgress:
+        - In Progress
+      blocked:
+        - Impediment
+      reviewOrHandoff:
+        - Code Review
+        - Testing
+      done:
+        - Done
+        - Resolved
+    priorityMapping:
+      P0:
+        - Critical
+      P1:
+        - Major
+      P2:
+        - Minor
+      P3:
+        - Trivial
+      P4:
+        - Lowest
+    dependencyLinkTypes:
+      - blocks
+      - is blocked by
+    thresholds:
+      staleInProgressBusinessDays: 5
+      noMeaningfulUpdateBusinessDays: 3
+      maxInProgressPerPerson: 3

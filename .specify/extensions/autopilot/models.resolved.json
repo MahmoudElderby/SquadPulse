@@ -1,0 +1,78 @@
+﻿{
+    "schema_version":  "1",
+    "execution":  "task",
+    "config_path":  "C:\\work\\ai\\SquadPulse\\.specify\\extensions\\autopilot\\models.yml",
+    "generated_at":  "2026-08-06T01:18:45.6992492+03:00",
+    "phases":  [
+                   {
+                       "phase":  "constitution",
+                       "configured":  "opus-4.7",
+                       "model":  "claude-opus-4-7-thinking-xhigh",
+                       "skill":  "speckit-constitution",
+                       "agent":  "speckit-constitution"
+                   },
+                   {
+                       "phase":  "specify",
+                       "configured":  "opus-4.7",
+                       "model":  "claude-opus-4-7-thinking-xhigh",
+                       "skill":  "speckit-specify",
+                       "agent":  "speckit-specify"
+                   },
+                   {
+                       "phase":  "clarify",
+                       "configured":  "opus-4.7",
+                       "model":  "claude-opus-4-7-thinking-xhigh",
+                       "skill":  "speckit-clarify",
+                       "agent":  "speckit-clarify"
+                   },
+                   {
+                       "phase":  "plan",
+                       "configured":  "composer",
+                       "model":  "composer-2.5-fast",
+                       "skill":  "speckit-plan",
+                       "agent":  "speckit-plan"
+                   },
+                   {
+                       "phase":  "analyze",
+                       "configured":  "composer",
+                       "model":  "composer-2.5-fast",
+                       "skill":  "speckit-analyze",
+                       "agent":  "speckit-analyze"
+                   },
+                   {
+                       "phase":  "tasks",
+                       "configured":  "composer",
+                       "model":  "composer-2.5-fast",
+                       "skill":  "speckit-tasks",
+                       "agent":  "speckit-tasks"
+                   },
+                   {
+                       "phase":  "implement",
+                       "configured":  "composer",
+                       "model":  "composer-2.5-fast",
+                       "skill":  "speckit-implement",
+                       "agent":  "speckit-implement"
+                   },
+                   {
+                       "phase":  "checklist",
+                       "configured":  "composer",
+                       "model":  "composer-2.5-fast",
+                       "skill":  "speckit-checklist",
+                       "agent":  "speckit-checklist"
+                   },
+                   {
+                       "phase":  "converge",
+                       "configured":  "composer",
+                       "model":  "composer-2.5-fast",
+                       "skill":  "speckit-converge",
+                       "agent":  "speckit-converge"
+                   },
+                   {
+                       "phase":  "taskstoissues",
+                       "configured":  "inherit",
+                       "model":  "inherit",
+                       "skill":  "speckit-taskstoissues",
+                       "agent":  "speckit-taskstoissues"
+                   }
+               ]
+}

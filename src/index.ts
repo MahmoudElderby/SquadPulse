@@ -1,0 +1,11 @@
+export { loadConfig } from './config/load.js';
+export { validateConfig } from './config/validate.js';
+export { analyzeSnapshot } from './analysis/engine.js';
+export { classifyHealth } from './analysis/health-classifier.js';
+export { parseSlackRequest } from './slack/parse-request.js';
+export { renderSquadReport } from './report/render-squad-report.js';
+export { renderDailyBriefing } from './report/render-daily-briefing.js';
+export type { EmCopilotConfig } from './contracts/config.js';
+export type { NormalizedSquadSnapshot } from './contracts/normalized-squad-snapshot.js';
+export type { DeterministicFindings } from './contracts/deterministic-findings.js';
+export type { RunResult } from './contracts/run-result.js';

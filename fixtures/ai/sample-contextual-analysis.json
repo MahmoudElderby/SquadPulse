@@ -1,0 +1,40 @@
+{
+  "keyFactsNarrative": [
+    "Cross-squad blocker on SF-102 may need coordination with Payments."
+  ],
+  "standUpFocusItems": [
+    {
+      "squadId": "storefront",
+      "focus": "Resolve SF-102 blocker dependency with Payments",
+      "relatedIssueKeys": ["SF-102", "PAY-50"]
+    },
+    {
+      "squadId": "payments",
+      "focus": "Prioritize PAY-50 to unblock Storefront checkout work",
+      "relatedIssueKeys": ["PAY-50"]
+    }
+  ],
+  "followUpDrafts": [
+    {
+      "recipientDisplayName": "Alex Chen",
+      "issueKeys": ["SF-101"],
+      "observation": "SF-101 has been in progress for 12 business days without a recent update.",
+      "request": "Can you share current status and any blockers on the checkout redesign?",
+      "draftType": "delivery"
+    },
+    {
+      "recipientDisplayName": "Jordan Lee",
+      "issueKeys": ["SF-104"],
+      "observation": "SF-104 is missing a story point estimate.",
+      "request": "Please add an estimate or confirm if this item needs sizing in the next planning session.",
+      "draftType": "hygiene"
+    },
+    {
+      "recipientDisplayName": "Sam Rivera",
+      "issueKeys": ["PAY-50", "SF-102"],
+      "observation": "PAY-50 is blocking SF-102 across squads.",
+      "request": "What is the expected resolution timeline for the gateway timeout fix?",
+      "draftType": "dependency"
+    }
+  ]
+}

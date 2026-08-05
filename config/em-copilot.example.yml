@@ -1,0 +1,110 @@
+jira:
+  baseUrl: https://example.atlassian.net
+
+slack:
+  managerDestination: C0123456789
+  onDemandReplyInThread: true
+
+schedule:
+  timezone: America/New_York
+  workingDays: [1, 2, 3, 4, 5]
+  dailyBriefingTime: "08:30"
+
+secrets:
+  envVarNames:
+    jiraBaseUrl: JIRA_BASE_URL
+    jiraEmail: JIRA_EMAIL
+    jiraApiToken: JIRA_API_TOKEN
+    slackBotToken: SLACK_BOT_TOKEN
+
+squads:
+  - id: storefront
+    displayName: Storefront
+    aliases:
+      - store
+      - sf
+    projectKeys:
+      - SF
+    scrumBoardId: 101
+    statusCategories:
+      notStarted:
+        - To Do
+        - Backlog
+      inProgress:
+        - In Progress
+        - Development
+      blocked:
+        - Blocked
+      reviewOrHandoff:
+        - In Review
+        - QA
+      done:
+        - Done
+        - Closed
+    priorityMapping:
+      P0:
+        - Highest
+        - Blocker
+      P1:
+        - High
+      P2:
+        - Medium
+      P3:
+        - Low
+      P4:
+        - Lowest
+    dependencyLinkTypes:
+      - blocks
+      - is blocked by
+    thresholds:
+      staleInProgressBusinessDays: 5
+      noMeaningfulUpdateBusinessDays: 3
+      maxInProgressPerPerson: 3
+    teamMemberSlackMap:
+      Alex Chen: U001
+      Jordan Lee: U002
+
+  - id: payments
+    displayName: Payments
+    aliases:
+      - pay
+      - billing
+    projectKeys:
+      - PAY
+    scrumBoardId: 201
+    kanbanBoardId: 202
+    statusCategories:
+      notStarted:
+        - Open
+        - Selected for Development
+      inProgress:
+        - In Progress
+      blocked:
+        - Impediment
+      reviewOrHandoff:
+        - Code Review
+        - Testing
+      done:
+        - Done
+        - Resolved
+    priorityMapping:
+      P0:
+        - Critical
+      P1:
+        - Major
+      P2:
+        - Minor
+      P3:
+        - Trivial
+      P4:
+        - Lowest
+    dependencyLinkTypes:
+      - blocks
+      - is blocked by
+    thresholds:
+      staleInProgressBusinessDays: 5
+      noMeaningfulUpdateBusinessDays: 3
+      maxInProgressPerPerson: 3
+    teamMemberSlackMap:
+      Sam Rivera: U003
+      Casey Kim: U004
