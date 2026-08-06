@@ -1,5 +1,6 @@
-# Local override for Automations / personal squads (gitignored).
-# Secrets stay in Cursor Cloud Agents Secrets — only env var names below.
+# Live squad config for Automations. Secrets only via env (names below).
+# Orion board filter (from Jira board settings):
+#   project = MTN AND "squad[dropdown]" = Orion ORDER BY Rank ASC
 jira:
   baseUrl: https://paysky1.atlassian.net
 
@@ -25,7 +26,9 @@ squads:
     aliases:
       - orion
     projectKeys:
-      - SF
+      - MTN
+    # Exact board Filter query without ORDER BY
+    boardFilterJql: project = MTN AND "squad[dropdown]" = Orion
     scrumBoardId: 35
     statusCategories:
       notStarted:

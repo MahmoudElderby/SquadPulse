@@ -99,6 +99,11 @@
           "minItems": 1,
           "items": { "type": "string", "minLength": 1 }
         },
+        "boardFilterJql": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Jira board Filter query from board settings. ORDER BY is stripped at runtime."
+        },
         "scrumBoardId": { "type": "integer", "minimum": 1 },
         "kanbanBoardId": { "type": "integer", "minimum": 1 },
         "statusCategories": {

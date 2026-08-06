@@ -10,6 +10,24 @@ export interface FetchSquadResult {
   error?: string;
 }
 
+/** Strip trailing ORDER BY so we can append sprint / updated clauses. */
+export function normalizeBoardFilterJql(raw: string): string {
+  return raw.replace(/\s+ORDER\s+BY\s+.+$/i, '').trim();
+}
+
+/**
+ * Build squad scope JQL.
+ * Prefer boardFilterJql (exact board settings); else project keys.
+ */
+export function buildSquadScopeJql(squad: SquadConfig, extraClauses: string[] = []): string {
+  const base = squad.boardFilterJql
+    ? normalizeBoardFilterJql(squad.boardFilterJql)
+    : `project in (${squad.projectKeys.map((k) => `"${k}"`).join(', ')})`;
+
+  const parts = [base, ...extraClauses.filter(Boolean)];
+  return `${parts.join(' AND ')} ORDER BY updated DESC`;
+}
+
 export async function fetchSquadSnapshot(
   client: JiraClient,
   squad: SquadConfig,
@@ -29,44 +47,54 @@ export async function fetchSquadSnapshot(
       previousSprintMeta = boardResult.previousSprint;
       if (boardResult.note) retrievalNotes.push(boardResult.note);
     } else if (squad.kanbanBoardId) {
-      issues = await client.getBoardIssues(
-        squad.kanbanBoardId,
-        'statusCategory != Done OR resolved >= -30d',
-        ISSUE_CAP,
-      );
+      const filter = squad.boardFilterJql
+        ? normalizeBoardFilterJql(squad.boardFilterJql)
+        : 'statusCategory != Done OR resolved >= -30d';
+      issues = await client.getBoardIssues(squad.kanbanBoardId, filter, ISSUE_CAP);
     } else {
-      // Fallback: project JQL only
-      const projectFilter = squad.projectKeys.map((k) => `"${k}"`).join(', ');
-      const jql = `project in (${projectFilter}) ORDER BY updated DESC`;
+      const jql = buildSquadScopeJql(squad);
       const result = await client.searchJql(jql, ISSUE_CAP);
       issues = result.issues;
     }
 
-    // If board path returned nothing, try project JQL as a secondary signal
-    if (issues.length === 0 && squad.projectKeys.length > 0) {
-      const projectFilter = squad.projectKeys.map((k) => `"${k}"`).join(', ');
-      let jql = `project in (${projectFilter})`;
-      if (squad.scrumBoardId) {
-        jql += ' AND sprint in openSprints()';
-      }
-      jql += ' ORDER BY updated DESC';
+    // Prefer boardFilterJql-based search when board path is empty or only project keys would be wrong
+    if (issues.length === 0 || squad.boardFilterJql) {
       try {
-        const fallback = await client.searchJql(jql, ISSUE_CAP);
-        if (fallback.issues.length > 0) {
-          issues = fallback.issues;
+        const extras: string[] = [];
+        if (squad.scrumBoardId && activeSprintMeta) {
+          extras.push(`sprint = ${activeSprintMeta.id}`);
+        } else if (squad.scrumBoardId) {
+          extras.push('sprint in openSprints()');
+        }
+        const jql = buildSquadScopeJql(squad, extras);
+        const scoped = await client.searchJql(jql, ISSUE_CAP);
+        if (scoped.issues.length > 0) {
+          // Prefer filter-scoped results when configured (board filter is source of truth)
+          if (squad.boardFilterJql || issues.length === 0) {
+            if (issues.length > 0 && scoped.issues.length !== issues.length) {
+              retrievalNotes.push(
+                `Applied boardFilterJql (${scoped.issues.length} issues) instead of board agile list (${issues.length}).`,
+              );
+            } else if (issues.length === 0) {
+              retrievalNotes.push(
+                `Board agile path returned 0 issues; loaded ${scoped.issues.length} via boardFilterJql / project JQL.`,
+              );
+            }
+            issues = scoped.issues;
+          }
+        } else if (issues.length === 0) {
           retrievalNotes.push(
-            'Board agile path returned 0 issues; used project JQL fallback (open sprint when scrum).',
-          );
-        } else {
-          retrievalNotes.push(
-            `Search returned 0 issues for projects [${squad.projectKeys.join(', ')}]` +
+            `Search returned 0 issues for JQL derived from ` +
+              (squad.boardFilterJql ? 'boardFilterJql' : `projects [${squad.projectKeys.join(', ')}]`) +
               (squad.scrumBoardId ? ` and board ${squad.scrumBoardId}` : '') +
-              '. Verify projectKeys and board IDs in config.',
+              '. Verify boardFilterJql, projectKeys, board ID, and active sprint.',
           );
         }
       } catch (fallbackErr) {
         const msg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
-        retrievalNotes.push(`Project JQL fallback failed: ${msg}`);
+        if (issues.length === 0) {
+          retrievalNotes.push(`Scoped JQL search failed: ${msg}`);
+        }
       }
     }
 
@@ -83,7 +111,7 @@ export async function fetchSquadSnapshot(
         issueCount: issues.length,
         cap: 500 as const,
         truncated,
-        scrumScope: squad.scrumBoardId ? 'active+previous sprint via board API' : undefined,
+        scrumScope: squad.scrumBoardId ? 'active+previous sprint via board/filter' : undefined,
         kanbanScope: squad.kanbanBoardId && !squad.scrumBoardId ? 'open+30d closed' : undefined,
       },
     });
@@ -103,7 +131,7 @@ export async function fetchSquadSnapshot(
       limitations.push({
         scope: `${squad.displayName} / issue retrieval`,
         reason:
-          '0 issues in scope. Analysis is incomplete — do not treat as a healthy empty sprint without verifying Jira config (project keys, board ID, active sprint).',
+          '0 issues in scope. Analysis is incomplete — do not treat as a healthy empty sprint without verifying Jira config (project keys, boardFilterJql, board ID, active sprint).',
       });
     }
 
@@ -144,7 +172,6 @@ async function fetchScrumBoardIssues(
     closed = await client.getBoardSprints(boardId, 'closed');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    // Board may not exist or Agile API disabled — caller still has JQL fallback
     return {
       issues: [],
       note: `Could not load sprints for board ${boardId}: ${msg}`,
@@ -161,7 +188,6 @@ async function fetchScrumBoardIssues(
       }
     : undefined;
 
-  // Most recently closed sprint by endDate
   const sortedClosed = [...closed].sort((a, b) => {
     const ae = a.endDate ? Date.parse(a.endDate) : 0;
     const be = b.endDate ? Date.parse(b.endDate) : 0;
@@ -199,7 +225,6 @@ async function fetchScrumBoardIssues(
     }
   }
 
-  // If no sprints at board, pull board backlog/open issues
   if (issueMap.size === 0) {
     const boardIssues = await client.getBoardIssues(boardId, undefined, ISSUE_CAP);
     for (const issue of boardIssues) {

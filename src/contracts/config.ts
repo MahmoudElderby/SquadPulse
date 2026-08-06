@@ -22,6 +22,8 @@ const squadSchema = z
     displayName: z.string().min(1),
     aliases: z.array(z.string().min(1)).optional(),
     projectKeys: z.array(z.string().min(1)).min(1),
+    /** Board "Filter query" from Jira board settings (ORDER BY is stripped at runtime). */
+    boardFilterJql: z.string().min(1).optional(),
     scrumBoardId: z.number().int().min(1).optional(),
     kanbanBoardId: z.number().int().min(1).optional(),
     statusCategories: statusCategoryMappingSchema,
