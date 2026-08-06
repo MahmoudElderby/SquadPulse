@@ -153,8 +153,9 @@ async function fetchScrumBoardIssues(
 
   const activeSprint = active[0]
     ? {
-        id: String(active[0].id),
+        id: active[0].id,
         name: active[0].name,
+        state: 'active' as const,
         startDate: active[0].startDate ?? new Date().toISOString(),
         endDate: active[0].endDate ?? new Date().toISOString(),
       }
@@ -169,8 +170,9 @@ async function fetchScrumBoardIssues(
   const prev = sortedClosed[0];
   const previousSprint = prev
     ? {
-        id: String(prev.id),
+        id: prev.id,
         name: prev.name,
+        state: 'closed' as const,
         startDate: prev.startDate ?? new Date().toISOString(),
         endDate: prev.endDate ?? new Date().toISOString(),
       }
@@ -179,7 +181,7 @@ async function fetchScrumBoardIssues(
   const issueMap = new Map<string, JiraIssue>();
 
   if (activeSprint) {
-    const sprintIssues = await client.getSprintIssues(Number(activeSprint.id), ISSUE_CAP);
+    const sprintIssues = await client.getSprintIssues(activeSprint.id, ISSUE_CAP);
     for (const issue of sprintIssues) {
       issueMap.set(issue.key, issue);
     }
@@ -187,7 +189,7 @@ async function fetchScrumBoardIssues(
 
   if (previousSprint && issueMap.size < ISSUE_CAP) {
     const prevIssues = await client.getSprintIssues(
-      Number(previousSprint.id),
+      previousSprint.id,
       ISSUE_CAP - issueMap.size,
     );
     for (const issue of prevIssues) {
