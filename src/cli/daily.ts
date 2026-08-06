@@ -157,7 +157,11 @@ async function main() {
     followUpDrafts: contextual?.followUpDrafts,
   });
 
-  const report = renderDailyBriefing(briefing, contextual);
+  const report = renderDailyBriefing(
+    briefing,
+    contextual,
+    Object.fromEntries(snapshots.map((s) => [s.squadId, s])),
+  );
 
   let slackDelivered = false;
   if (secrets.slackBotToken) {

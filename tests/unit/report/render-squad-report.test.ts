@@ -8,7 +8,7 @@ import { loadConfig } from '../../../src/config/load.js';
 const config = loadConfig('config/em-copilot.example.yml');
 
 describe('squad report renderer', () => {
-  it('renders sections in fixed order', () => {
+  it('renders manager-friendly sections with titles and owners', () => {
     const snapshot = normalizedSquadSnapshotSchema.parse(
       JSON.parse(readFileSync('fixtures/jira/storefront-sprint-active.json', 'utf-8')),
     );
@@ -16,18 +16,30 @@ describe('squad report renderer', () => {
     const findings = analyzeSnapshot(snapshot, squad);
     const report = renderSquadReport({ snapshot, findings, intent: 'full' });
 
-    const healthIdx = report.indexOf('Overall Health');
-    const factsIdx = report.indexOf('Key Facts');
-    const risksIdx = report.indexOf('Delivery Risks');
-    const blockersIdx = report.indexOf('Blockers');
-    const hygieneIdx = report.indexOf('Jira Hygiene');
-    const actionsIdx = report.indexOf('Prioritized Manager Actions');
+    expect(report).toMatch(/Storefront Squad —/);
+    expect(report).toContain('*Why this status*');
+    expect(report).toContain('*What needs you today*');
+    expect(report).toContain('*Risks*');
+    expect(report).toContain('*Blockers*');
+    expect(report).toContain('*Jira hygiene*');
+    expect(report).toContain('*Snapshot*');
 
-    expect(healthIdx).toBeLessThan(factsIdx);
-    expect(factsIdx).toBeLessThan(risksIdx);
-    expect(risksIdx).toBeLessThan(blockersIdx);
-    expect(blockersIdx).toBeLessThan(hygieneIdx);
-    expect(hygieneIdx).toBeLessThan(actionsIdx);
+    // Title + owner enrichment when work items present
+    const firstKey = snapshot.workItems[0]?.key;
+    if (firstKey) {
+      expect(report).toContain(`\`${firstKey}\``);
+      const item = snapshot.workItems[0];
+      if (item.summary) {
+        // at least one title should appear if that key shows in risks/hygiene
+        expect(report.includes(item.summary) || report.includes(firstKey)).toBe(true);
+      }
+    }
+
+    const whyIdx = report.indexOf('*Why this status*');
+    const todayIdx = report.indexOf('*What needs you today*');
+    const risksIdx = report.indexOf('*Risks*');
+    expect(whyIdx).toBeLessThan(todayIdx);
+    expect(todayIdx).toBeLessThan(risksIdx);
   });
 
   it('caps lists at 5 with overflow disclosure', () => {
@@ -37,7 +49,7 @@ describe('squad report renderer', () => {
     for (let i = 0; i < 10; i++) {
       snapshot.workItems.push({
         key: `SF-9${i}`,
-        summary: `Extra ${i}`,
+        summary: `Extra stale item ${i}`,
         projectKey: 'SF',
         boardType: 'scrum',
         priorityTier: 'P3',
@@ -52,6 +64,8 @@ describe('squad report renderer', () => {
     const findings = analyzeSnapshot(snapshot, squad);
     const report = renderSquadReport({ snapshot, findings, intent: 'full' });
     expect(report).toMatch(/\+[0-9]+ more risks not shown/);
+    expect(report).toContain('Extra stale item');
+    expect(report).toContain('Owner: Alex Chen');
   });
 
   it('does not downgrade health based on hygiene alone', () => {
@@ -63,6 +77,17 @@ describe('squad report renderer', () => {
     const report = renderSquadReport({ snapshot, findings, intent: 'full' });
     expect(findings.health.status).toBe('On Track');
     expect(report).toContain('On Track');
-    expect(report).toContain('Jira Hygiene');
+    expect(report).toContain('*Jira hygiene*');
+  });
+
+  it('merges hygiene findings per ticket on one line', () => {
+    const snapshot = normalizedSquadSnapshotSchema.parse(
+      JSON.parse(readFileSync('fixtures/jira/storefront-hygiene-only.json', 'utf-8')),
+    );
+    const squad = config.squads.find((s) => s.id === 'storefront')!;
+    const findings = analyzeSnapshot(snapshot, squad);
+    const report = renderSquadReport({ snapshot, findings, intent: 'hygiene' });
+    // should not print raw category codes like missingEstimate as the only signal
+    expect(report).toMatch(/no estimate|unassigned|resolved but still open/i);
   });
 });

@@ -85,3 +85,5 @@ export type DeterministicFindings = z.infer<typeof deterministicFindingsSchema>;
 export type DeliveryRisk = z.infer<typeof deliveryRiskSchema>;
 export type HygieneFinding = z.infer<typeof hygieneFindingSchema>;
 export type FlowSignal = z.infer<typeof flowSignalSchema>;
+export type Blocker = z.infer<typeof blockerSchema>;
+export type ManagerAction = z.infer<typeof managerActionSchema>;
