@@ -9,7 +9,12 @@ export function nowInTimezone(tz: string): DateTime {
 }
 
 export function formatReportTimestamp(tz: string): string {
-  return nowInTimezone(tz).toFormat("yyyy-MM-dd HH:mm zzz");
+  const dt = nowInTimezone(tz);
+  if (!dt.isValid) {
+    return DateTime.utc().toFormat("yyyy-MM-dd HH:mm 'UTC'");
+  }
+  // Prefer offset name/offset over abbreviated zone token, which can render oddly
+  return dt.toFormat('yyyy-MM-dd HH:mm ZZZZ');
 }
 
 export function formatReportDate(tz: string): string {

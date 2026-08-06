@@ -105,6 +105,9 @@ async function main() {
         });
       }
       snapshot = result.snapshot;
+      if (result.error) {
+        console.error(`Jira fetch issue for ${squadConfig.displayName}: ${result.error}`);
+      }
     }
   } catch (err) {
     if (err instanceof JiraAuthError) {

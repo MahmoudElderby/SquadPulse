@@ -14,6 +14,23 @@ export function classifyHealth(
   const count = deliveryRisks.length;
   const reasons: string[] = [];
 
+  // Empty or failed retrieval must not read as a healthy sprint (Constitution IX)
+  if (snapshot.workItems.length === 0) {
+    const fetchFailed = (snapshot.limitations ?? []).some((l) =>
+      /failed|error|could not/i.test(l.reason),
+    );
+    reasons.push(
+      fetchFailed
+        ? 'Jira data could not be retrieved (or retrieval failed); status is unknown'
+        : '0 issues retrieved in scope — verify board ID, project keys, and active sprint before treating as healthy',
+    );
+    return {
+      status: 'Needs Attention',
+      reasons,
+      deliveryRiskCount: count,
+    };
+  }
+
   const hasUnownedP01Blocker = deliveryRisks.some(
     (r) => r.category === 'unownedBlocker' && r.issueKeys.length > 0,
   );
