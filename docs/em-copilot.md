@@ -21,10 +21,18 @@ Cursor-only assistant for engineering managers: Jira read + Slack reports for tw
 
 ## Secrets (never commit)
 
-- `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`
+- `JIRA_BASE_URL` — full site origin only, **with `https://`**, e.g. `https://paysky1.atlassian.net`  
+  (not a bare hostname, not a board browser URL)
+- `JIRA_EMAIL`
+- `JIRA_API_TOKEN`
 - `SLACK_BOT_TOKEN`
 
 Override env var names in config `secrets.envVarNames`.
+
+### Not using Jira MCP
+
+The MVP talks to Jira via **REST** (`/rest/api/3/*` and `/rest/agile/1.0/*`) from Node CLIs.  
+Cursor’s Atlassian/Jira MCP is optional for human-agent chats; automations do **not** require it and the analysis engine is not built on MCP today.
 
 ## Automations
 

@@ -34,6 +34,16 @@ export class JiraClient {
 
   constructor(secrets: ResolvedSecrets) {
     this.baseUrl = secrets.jiraBaseUrl.replace(/\/$/, '');
+    if (!/^https?:\/\//i.test(this.baseUrl)) {
+      throw new Error(
+        `Jira base URL must be absolute (https://...). Got host path that fetch cannot parse.`,
+      );
+    }
+    if (!secrets.jiraEmail || !secrets.jiraApiToken) {
+      throw new Error(
+        'JIRA_EMAIL and JIRA_API_TOKEN secrets are required for live Jira access (not present or empty).',
+      );
+    }
     const encoded = Buffer.from(`${secrets.jiraEmail}:${secrets.jiraApiToken}`).toString('base64');
     this.authHeader = `Basic ${encoded}`;
   }
