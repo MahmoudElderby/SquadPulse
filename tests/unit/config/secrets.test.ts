@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { normalizeJiraBaseUrl, resolveSecrets } from '../../src/config/secrets.js';
-import { loadConfig } from '../../src/config/load.js';
+import { normalizeJiraBaseUrl, resolveSecrets } from '../../../src/config/secrets.js';
+import { loadConfig } from '../../../src/config/load.js';
 
 describe('normalizeJiraBaseUrl', () => {
   it('adds https when scheme missing', () => {
