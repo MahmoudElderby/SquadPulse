@@ -61,3 +61,19 @@ export function parseTimeHHmm(time: string): { hour: number; minute: number } {
   const [h, m] = time.split(':').map(Number);
   return { hour: h, minute: m };
 }
+
+/**
+ * Normalize Jira/API timestamps to RFC 3339 for Zod `.datetime()`.
+ * Jira often returns offsets like `+0300` (no colon), which Zod rejects.
+ */
+export function toRfc3339DateTime(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const withColonOffset = value.replace(/([+-]\d{2})(\d{2})$/, '$1:$2');
+  const dt = DateTime.fromISO(withColonOffset, { setZone: true });
+  if (dt.isValid) {
+    return dt.toUTC().toISO({ suppressMilliseconds: false }) ?? undefined;
+  }
+  const fallback = new Date(value);
+  if (Number.isNaN(fallback.getTime())) return undefined;
+  return fallback.toISOString();
+}
