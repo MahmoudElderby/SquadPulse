@@ -16,7 +16,13 @@ import { summarizeReplies, buildCycleReplySummary } from '../followups/summarize
 import { renderReplySummary } from '../followups/render-reply-summary.js';
 import { postSlackMessage, dryRunPost } from '../slack/post-message.js';
 import { createSlackClient, deliverDirectMessage, readDmReplies } from '../slack/dm-deliver.js';
-import { pollThreadOnce, sleepMs, pollDeadline, isPastDeadline } from '../slack/poll-thread.js';
+import {
+  pollThreadOnce,
+  sleepMs,
+  pollDeadline,
+  isPastDeadline,
+  SlackHistoryScopeError,
+} from '../slack/poll-thread.js';
 import { isFixtureMode } from '../lib/fixture-mode.js';
 import { followUpRunResultSchema } from '../contracts/follow-up-run-result.js';
 import type { FollowUpCycle } from '../contracts/follow-up-cycle.js';
@@ -36,9 +42,11 @@ function parseArgs() {
     fixture: isFixtureMode(args),
     dryRun: args.includes('--dry-run'),
     poll: args.includes('--poll'),
+    noPreview: args.includes('--no-preview'),
     configPath: resolveConfigPath(get('--config')),
     artifactFixture: get('--artifact-fixture'),
     commandTranscript: get('--command-transcript'),
+    commandsBridge: get('--commands-bridge'),
   };
 }
 
@@ -270,11 +278,15 @@ async function main() {
       ? renderZeroProposalsMessage(parsed.squadDisplayName)
       : renderCyclePreview(cycle);
 
-  const previewPost = await postManagerMessage(preview, opts, secrets);
-  const slackDelivered = previewPost.slackDelivered;
-  let lastTs = previewPost.messageTs ?? opts.threadTs;
+  let lastTs = opts.threadTs;
+  let slackDelivered = false;
+  if (!opts.noPreview) {
+    const previewPost = await postManagerMessage(preview, opts, secrets);
+    slackDelivered = previewPost.slackDelivered;
+    lastTs = previewPost.messageTs ?? opts.threadTs;
+  }
 
-  if (opts.dryRun && !opts.poll && !opts.commandTranscript) {
+  if (opts.dryRun && !opts.poll && !opts.commandTranscript && !opts.commandsBridge) {
     emitFollowUpResult({
       status: 'success',
       workflow: 'followups',
@@ -289,7 +301,7 @@ async function main() {
     });
   }
 
-  if (!opts.poll && !opts.commandTranscript) {
+  if (!opts.poll && !opts.commandTranscript && !opts.commandsBridge) {
     emitFollowUpResult({
       status: 'success',
       workflow: 'followups',
@@ -321,14 +333,36 @@ async function main() {
       transcriptIdx++;
       messages = [{ text: cmd, ts: `${Date.now()}.${transcriptIdx}` }];
     } else {
-      messages = await pollThreadOnce(client, {
-        channel: opts.slackChannel ?? '',
-        threadTs: opts.threadTs,
-        sinceTs: lastTs,
-        pollIntervalSeconds: ca.pollIntervalSeconds,
-        cycleMaxMinutes: ca.cycleMaxMinutes,
-        dryRun: opts.dryRun,
-      });
+      try {
+        messages = await pollThreadOnce(client, {
+          channel: opts.slackChannel ?? '',
+          threadTs: opts.threadTs,
+          sinceTs: lastTs,
+          pollIntervalSeconds: ca.pollIntervalSeconds,
+          cycleMaxMinutes: ca.cycleMaxMinutes,
+          dryRun: opts.dryRun,
+          commandsBridgePath: opts.commandsBridge,
+        });
+      } catch (err) {
+        if (err instanceof SlackHistoryScopeError) {
+          await postManagerMessage(
+            'Cannot poll this thread: Slack bot needs `channels:history` (public) or `groups:history` (private). Add the scope and re-run, or feed commands via the automation bridge.',
+            opts,
+            secrets,
+          );
+          emitFollowUpResult({
+            status: 'error',
+            workflow: 'followups',
+            slackDelivered,
+            cycleId: cycle.cycleId,
+            squadId: parsed.squadId,
+            proposalsGenerated: proposals.length,
+            failureReason: 'MISSING_SLACK_HISTORY_SCOPE',
+            previewSnippet: preview.slice(0, 500),
+          });
+        }
+        throw err;
+      }
     }
 
     if (messages.length === 0) {
@@ -409,5 +443,25 @@ async function main() {
 
 main().catch((err) => {
   console.error(err);
+  const failureReason =
+    err instanceof SlackHistoryScopeError
+      ? 'MISSING_SLACK_HISTORY_SCOPE'
+      : 'UNHANDLED_ERROR';
+  try {
+    console.log(
+      JSON.stringify(
+        followUpRunResultSchema.parse({
+          status: 'error',
+          workflow: 'followups',
+          slackDelivered: false,
+          failureReason,
+        }),
+        null,
+        2,
+      ),
+    );
+  } catch {
+    // ignore schema fallback failures
+  }
   process.exit(1);
 });
