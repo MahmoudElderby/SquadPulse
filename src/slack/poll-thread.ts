@@ -1,4 +1,5 @@
 import type { WebClient } from '@slack/web-api';
+import { readCommandsBridgeSince } from './commands-bridge.js';
 
 export interface ThreadMessage {
   text: string;
@@ -15,6 +16,11 @@ export interface PollThreadOptions {
   dryRun?: boolean;
   /** Fixture mode: inject messages instead of polling Slack */
   fixtureMessages?: ThreadMessage[];
+  /**
+   * JSONL path for orchestrator-fed manager commands when Slack history
+   * scopes are unavailable (see readCommandsBridgeSince).
+   */
+  commandsBridgePath?: string;
 }
 
 export async function fetchThreadRepliesSince(
@@ -44,9 +50,16 @@ export async function pollThreadOnce(
   if (options.fixtureMessages) {
     return options.fixtureMessages.filter((m) => m.ts > sinceTs);
   }
+
+  // Orchestrator feed (MCP read → JSONL) — exclusive when configured.
+  if (options.commandsBridgePath) {
+    return readCommandsBridgeSince(options.commandsBridgePath, sinceTs);
+  }
+
   if (options.dryRun || !client) {
     return [];
   }
+
   return fetchThreadRepliesSince(client, options.channel, options.threadTs, sinceTs);
 }
 
