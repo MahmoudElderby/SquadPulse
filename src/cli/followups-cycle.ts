@@ -446,7 +446,9 @@ main().catch((err) => {
   const failureReason =
     err instanceof SlackHistoryScopeError
       ? 'MISSING_SLACK_HISTORY_SCOPE'
-      : 'UNHANDLED_ERROR';
+      : err instanceof SlackPostError
+        ? 'SLACK_POST_FAILED'
+        : 'UNHANDLED_ERROR';
   try {
     console.log(
       JSON.stringify(
