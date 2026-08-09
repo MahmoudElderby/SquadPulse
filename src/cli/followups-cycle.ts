@@ -39,6 +39,7 @@ function parseArgs() {
     configPath: resolveConfigPath(get('--config')),
     artifactFixture: get('--artifact-fixture'),
     commandTranscript: get('--command-transcript'),
+    commandsBridge: get('--commands-bridge'),
   };
 }
 
@@ -357,14 +358,35 @@ async function main() {
       transcriptIdx++;
       messages = [{ text: cmd, ts: `${Date.now()}.${transcriptIdx}` }];
     } else {
-      messages = await pollThreadOnce(client, {
-        channel: opts.slackChannel ?? '',
-        threadTs: opts.threadTs,
-        sinceTs: lastTs,
-        pollIntervalSeconds: ca.pollIntervalSeconds,
-        cycleMaxMinutes: ca.cycleMaxMinutes,
-        dryRun: opts.dryRun,
-      });
+      try {
+        messages = await pollThreadOnce(client, {
+          channel: opts.slackChannel ?? '',
+          threadTs: opts.threadTs,
+          sinceTs: lastTs,
+          pollIntervalSeconds: ca.pollIntervalSeconds,
+          cycleMaxMinutes: ca.cycleMaxMinutes,
+          dryRun: opts.dryRun,
+          commandsBridgePath: opts.commandsBridge,
+        });
+      } catch (err) {
+        const data = err && typeof err === 'object' ? (err as { data?: { error?: string; needed?: string } }).data : undefined;
+        if (data?.error === 'missing_scope') {
+          emitFollowUpResult({
+            status: 'error',
+            workflow: 'followups',
+            slackDelivered,
+            failureReason: 'SLACK_POLL_FAILED',
+            cycleId: cycle.cycleId,
+            squadId: parsed.squadId,
+            proposalsGenerated: proposals.length,
+            messagesSent: 0,
+            messagesSkipped: 0,
+            messagesFailed: 0,
+            previewSnippet: preview.slice(0, 500),
+          });
+        }
+        throw err;
+      }
     }
 
     if (messages.length === 0) {
