@@ -36,6 +36,19 @@ function parseIndexes(raw: string): number[] {
     .filter((n) => !Number.isNaN(n) && n >= 1);
 }
 
+/** True when text is a manager command during an active follow-up poll loop. */
+export function isFollowUpManagerCommand(text: string): boolean {
+  const rawText = text.trim();
+  if (/^approve\s+all\b/i.test(rawText)) return true;
+  if (/^approve\s+[\d,\s]+$/i.test(rawText)) return true;
+  if (/^edit\s+\d+\s*:/is.test(rawText)) return true;
+  if (/^ignore\s+\d+$/i.test(rawText)) return true;
+  if (/^draft\s+another\s+\d+$/i.test(rawText)) return true;
+  if (/^status\b/i.test(rawText)) return true;
+  if (/^(done|close cycle)\b/i.test(rawText)) return true;
+  return false;
+}
+
 export function parseFollowUpRequest(text: string, config: EmCopilotConfig): ParsedFollowUpSlackRequest {
   const rawText = text.trim();
   const lower = rawText.toLowerCase().replace(/\s+/g, ' ');

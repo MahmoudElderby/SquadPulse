@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { loadConfig } from '../../../src/config/load.js';
-import { parseFollowUpRequest } from '../../../src/slack/parse-followup-request.js';
+import { parseFollowUpRequest, isFollowUpManagerCommand } from '../../../src/slack/parse-followup-request.js';
 
 const config = loadConfig('fixtures/config/followups-orion.yml');
 
@@ -52,5 +52,20 @@ describe('parseFollowUpRequest', () => {
   it('returns unknownCommand for invalid approve index format', () => {
     const result = parseFollowUpRequest('approve foo', config);
     expect(result.kind).toBe('unknownCommand');
+  });
+});
+
+describe('isFollowUpManagerCommand', () => {
+  it('matches manager commands only', () => {
+    expect(isFollowUpManagerCommand('approve 1')).toBe(true);
+    expect(isFollowUpManagerCommand('approve all')).toBe(true);
+    expect(isFollowUpManagerCommand('status')).toBe(true);
+    expect(isFollowUpManagerCommand('done')).toBe(true);
+  });
+
+  it('rejects bot preview text and start triggers', () => {
+    expect(isFollowUpManagerCommand('*Follow-up proposals — Orion*')).toBe(false);
+    expect(isFollowUpManagerCommand('followups Orion')).toBe(false);
+    expect(isFollowUpManagerCommand('thanks')).toBe(false);
   });
 });

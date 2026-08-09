@@ -29,7 +29,37 @@ In addition to feature 001 scopes:
 | `chat:write` | Post preview and summaries to manager thread |
 | `im:write` | Open DM channels and send engineer messages |
 | `im:history` | Read engineer DM replies for `status` command |
+| `im:read` | List/open DM channels (recommended with `im:history`) |
 | `users:read` | Validate Slack user mappings |
+
+## Engineer can reply to follow-up DMs
+
+If an engineer sees **“Squad Pulse is turned off”** (or cannot type in the bot DM), the Slack **App Home** must allow incoming messages. This is configured in the Slack API dashboard — not in `config/em-copilot.yml`.
+
+### Slack app admin steps
+
+1. Open [api.slack.com/apps](https://api.slack.com/apps) → select **Squad Pulse** (your bot app).
+2. Go to **Features → App Home**.
+3. Turn on **Messages Tab**.
+4. Turn on **Allow users to send Slash commands and messages from the messages tab**.
+5. If you added scopes (`im:read`, etc.), go to **Install App → Reinstall to Workspace** and approve the new permissions.
+6. Ask the engineer to open **Apps → Squad Pulse** once and confirm the message input is enabled in the DM.
+
+### Engineer-side check
+
+- Reply **in the DM thread** Squad Pulse opened (not in a manager channel).
+- If the app was paused/disabled for that user: **Apps → Squad Pulse →** ensure notifications/messages are not blocked.
+- Workspace admins: confirm no policy blocks **user-to-app DMs**.
+
+Until App Home messaging is enabled, delivery can succeed but **`status` will show no replies** because the bot cannot receive engineer messages.
+
+## Troubleshooting
+
+| Symptom | Check |
+|---------|-------|
+| Engineer cannot reply; “app is turned off” | App Home → Messages Tab + allow user messages (above) |
+| `status` shows no replies | Engineer replied in bot DM; `im:history` scope; bot not blocked |
+| No reply | Automation enabled; bot in channel; `SLACK_BOT_TOKEN` set |
 
 ## Blocking run
 

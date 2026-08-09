@@ -4,7 +4,7 @@ import { validateConfig } from '../config/validate.js';
 import { resolveSecrets } from '../config/secrets.js';
 import { resolveConfigPath } from '../config/resolve-path.js';
 import { resolveCommunicationAssistant } from '../contracts/config.js';
-import { parseFollowUpRequest } from '../slack/parse-followup-request.js';
+import { isFollowUpManagerCommand, parseFollowUpRequest } from '../slack/parse-followup-request.js';
 import { loadSquadAnalysisArtifact } from '../followups/load-artifact.js';
 import { mapFindingsToProposals } from '../followups/map-findings-to-proposals.js';
 import { composeProposalDrafts, buildContinuationDraft } from '../followups/compose-proposal-drafts.js';
@@ -52,19 +52,19 @@ async function postManagerMessage(
   text: string,
   opts: ReturnType<typeof parseArgs>,
   secrets: ReturnType<typeof resolveSecrets>,
-): Promise<boolean> {
+): Promise<{ slackDelivered: boolean; messageTs?: string }> {
   if (opts.dryRun || !opts.slackChannel || !secrets.slackBotToken) {
     dryRunPost(text);
     console.log(text);
-    return false;
+    return { slackDelivered: false };
   }
-  await postSlackMessage({
+  const result = await postSlackMessage({
     secrets,
     channel: opts.slackChannel,
     text,
     threadTs: opts.threadTs,
   });
-  return true;
+  return { slackDelivered: true, messageTs: result.ts };
 }
 
 async function sendApprovedProposals(
@@ -270,7 +270,9 @@ async function main() {
       ? renderZeroProposalsMessage(parsed.squadDisplayName)
       : renderCyclePreview(cycle);
 
-  const slackDelivered = await postManagerMessage(preview, opts, secrets);
+  const previewPost = await postManagerMessage(preview, opts, secrets);
+  const slackDelivered = previewPost.slackDelivered;
+  let lastTs = previewPost.messageTs ?? opts.threadTs;
 
   if (opts.dryRun && !opts.poll && !opts.commandTranscript) {
     emitFollowUpResult({
@@ -303,7 +305,6 @@ async function main() {
   }
 
   const client = secrets.slackBotToken && !opts.dryRun ? createSlackClient(secrets) : null;
-  let lastTs = opts.threadTs;
   const deadline = pollDeadline(ca.cycleMaxMinutes);
 
   const transcriptCommands: string[] = opts.commandTranscript && existsSync(opts.commandTranscript)
@@ -338,12 +339,17 @@ async function main() {
 
     for (const msg of messages) {
       lastTs = msg.ts;
+      if (!isFollowUpManagerCommand(msg.text)) {
+        continue;
+      }
+
       const cmd = parseFollowUpRequest(msg.text, config);
       const result = processManagerCommand(cycle, cmd);
       cycle = result.cycle;
 
       if (!result.ok) {
-        await postManagerMessage(result.message, opts, secrets);
+        const post = await postManagerMessage(result.message, opts, secrets);
+        if (post.messageTs) lastTs = post.messageTs;
         continue;
       }
 
@@ -351,20 +357,23 @@ async function main() {
         const base = cycle.proposals.find((p) => p.index === result.draftAnotherIndex)!;
         const continuation = buildContinuationDraft(base, cycle.inCycleContext);
         cycle = addContinuationProposal(cycle, continuation);
-        await postManagerMessage(renderCyclePreview(cycle), opts, secrets);
+        const post = await postManagerMessage(renderCyclePreview(cycle), opts, secrets);
+        if (post.messageTs) lastTs = post.messageTs;
         continue;
       }
 
       if (result.shouldSendApproved) {
         const toSend = getApprovedPendingSend(cycle).filter((p) => !cycle.deliveries?.some((d) => d.proposalIndex === p.index && d.deliveryStatus === 'sent'));
         cycle = await sendApprovedProposals(cycle, toSend, opts, secrets, config);
-        await postManagerMessage(renderDeliverySummary(cycle), opts, secrets);
+        const post = await postManagerMessage(renderDeliverySummary(cycle), opts, secrets);
+        if (post.messageTs) lastTs = post.messageTs;
       }
 
       if (result.shouldStatus) {
         const { cycle: updated, summaryText } = await handleStatus(cycle, opts, secrets, config);
         cycle = updated;
-        await postManagerMessage(summaryText, opts, secrets);
+        const post = await postManagerMessage(summaryText, opts, secrets);
+        if (post.messageTs) lastTs = post.messageTs;
       }
 
       if (result.shouldClose) {
@@ -373,7 +382,8 @@ async function main() {
       }
 
       if (result.message && !result.shouldSendApproved && !result.shouldStatus) {
-        await postManagerMessage(result.message, opts, secrets);
+        const post = await postManagerMessage(result.message, opts, secrets);
+        if (post.messageTs) lastTs = post.messageTs;
       }
     }
 

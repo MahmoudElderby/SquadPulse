@@ -39,8 +39,8 @@ export async function fetchThreadRepliesSince(
 export async function pollThreadOnce(
   client: WebClient | null,
   options: PollThreadOptions,
-  sinceTs: string,
 ): Promise<ThreadMessage[]> {
+  const sinceTs = options.sinceTs;
   if (options.fixtureMessages) {
     return options.fixtureMessages.filter((m) => m.ts > sinceTs);
   }
