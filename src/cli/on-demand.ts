@@ -156,6 +156,18 @@ async function main() {
     scopeSummary: formatScopeSummary(parsed.scope) ?? undefined,
   });
 
+  try {
+    writeSquadAnalysisArtifact({
+      config,
+      snapshot,
+      findings,
+      contextual,
+      workflow: 'on-demand',
+    });
+  } catch (err) {
+    console.error(`Failed to write analysis artifact: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
   let slackDelivered = false;
   if (opts.slackChannel && secrets.slackBotToken) {
     try {
@@ -180,18 +192,6 @@ async function main() {
   } else {
     dryRunPost(report);
     console.log(report);
-  }
-
-  try {
-    writeSquadAnalysisArtifact({
-      config,
-      snapshot,
-      findings,
-      contextual,
-      workflow: 'on-demand',
-    });
-  } catch (err) {
-    console.error(`Failed to write analysis artifact: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   exitWithRunResult({

@@ -14,7 +14,7 @@ import { processManagerCommand, getApprovedPendingSend } from '../followups/proc
 import { renderDeliverySummary, countDeliveryStats } from '../followups/render-delivery-summary.js';
 import { summarizeReplies, buildCycleReplySummary } from '../followups/summarize-replies.js';
 import { renderReplySummary } from '../followups/render-reply-summary.js';
-import { postSlackMessage, dryRunPost } from '../slack/post-message.js';
+import { postSlackMessage, dryRunPost, SlackPostError } from '../slack/post-message.js';
 import { createSlackClient, deliverDirectMessage, readDmReplies } from '../slack/dm-deliver.js';
 import {
   pollThreadOnce,
