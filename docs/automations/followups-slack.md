@@ -6,7 +6,7 @@ Cursor Automation setup for the Engineering Communication Assistant follow-up cy
 
 - **Type**: `slackTrigger`
 - **Destination**: `slack.managerDestination` from `config/em-copilot.yml`
-- **Filter**: message contains `followups`, `follow-ups`, or `follow ups`
+- **Filter**: message contains `followups`, `follow-ups`, `follow ups`, `followup`, or `follow up`
 
 Do **not** trigger on bare `approve`, `status`, or `done` — those are handled inside the blocking poll loop.
 
