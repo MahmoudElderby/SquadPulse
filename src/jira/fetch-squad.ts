@@ -1,5 +1,6 @@
 import type { SquadConfig } from '../contracts/config.js';
 import type { NormalizedSquadSnapshot } from '../contracts/normalized-squad-snapshot.js';
+import { toRfc3339DateTime } from '../lib/datetime.js';
 import { JiraClient, JiraAuthError, type JiraIssue, type JiraSprint } from './client.js';
 import { normalizeIssues } from './normalize.js';
 
@@ -183,8 +184,8 @@ async function fetchScrumBoardIssues(
         id: active[0].id,
         name: active[0].name,
         state: 'active' as const,
-        startDate: active[0].startDate ?? new Date().toISOString(),
-        endDate: active[0].endDate ?? new Date().toISOString(),
+        startDate: toRfc3339DateTime(active[0].startDate) ?? new Date().toISOString(),
+        endDate: toRfc3339DateTime(active[0].endDate) ?? new Date().toISOString(),
       }
     : undefined;
 
@@ -199,8 +200,8 @@ async function fetchScrumBoardIssues(
         id: prev.id,
         name: prev.name,
         state: 'closed' as const,
-        startDate: prev.startDate ?? new Date().toISOString(),
-        endDate: prev.endDate ?? new Date().toISOString(),
+        startDate: toRfc3339DateTime(prev.startDate) ?? new Date().toISOString(),
+        endDate: toRfc3339DateTime(prev.endDate) ?? new Date().toISOString(),
       }
     : undefined;
 
