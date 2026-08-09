@@ -1,6 +1,7 @@
 # Live squad config for Automations. Secrets only via env (names below).
-# Orion board filter (from Jira board settings):
-#   project = MTN AND "squad[dropdown]" = Orion ORDER BY Rank ASC
+# Board filters (ORDER BY stripped at runtime):
+#   Orion: project = MTN AND "squad[dropdown]" = Orion ORDER BY Rank ASC  (board 35)
+#   Cobra: project = MTN AND "squad[dropdown]" = Cobra ORDER BY Rank ASC  (board 36)
 jira:
   baseUrl: https://paysky1.atlassian.net
 
@@ -27,7 +28,6 @@ squads:
       - orion
     projectKeys:
       - MTN
-    # Exact board Filter query without ORDER BY
     boardFilterJql: project = MTN AND "squad[dropdown]" = Orion
     scrumBoardId: 35
     statusCategories:
@@ -65,38 +65,39 @@ squads:
       noMeaningfulUpdateBusinessDays: 3
       maxInProgressPerPerson: 3
 
-  - id: payments
-    displayName: Payments
+  - id: cobra
+    displayName: Cobra
     aliases:
-      - pay
-      - billing
+      - cobra
     projectKeys:
-      - PAY
-    scrumBoardId: 201
-    kanbanBoardId: 202
+      - MTN
+    boardFilterJql: project = MTN AND "squad[dropdown]" = Cobra
+    scrumBoardId: 36
     statusCategories:
       notStarted:
-        - Open
-        - Selected for Development
+        - To Do
+        - Backlog
       inProgress:
         - In Progress
+        - Development
       blocked:
-        - Impediment
+        - Blocked
       reviewOrHandoff:
-        - Code Review
-        - Testing
+        - In Review
+        - QA
       done:
         - Done
-        - Resolved
+        - Closed
     priorityMapping:
       P0:
-        - Critical
+        - Highest
+        - Blocker
       P1:
-        - Major
+        - High
       P2:
-        - Minor
+        - Medium
       P3:
-        - Trivial
+        - Low
       P4:
         - Lowest
     dependencyLinkTypes:
