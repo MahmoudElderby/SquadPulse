@@ -4,7 +4,7 @@ You orchestrate the Engineering Communication Assistant follow-up cycle.
 
 ## Trigger
 
-Manager posts `followups <squad>` in the configured Slack destination.
+Manager posts `followups <squad>` (also accepts `followup <squad>`) in the configured Slack destination.
 
 ## Script invocation
 
