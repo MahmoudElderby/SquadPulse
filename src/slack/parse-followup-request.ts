@@ -2,7 +2,8 @@ import type { EmCopilotConfig } from '../contracts/config.js';
 import type { ParsedFollowUpSlackRequest } from '../contracts/follow-up-slack-request.js';
 import { SUPPORTED_FOLLOWUP_COMMANDS } from '../contracts/follow-up-slack-request.js';
 
-const FOLLOWUP_INTENT_KEYWORDS = ['followups', 'follow-ups', 'follow ups'];
+// Include singular "followup" / "follow-up" — managers often omit the trailing "s".
+const FOLLOWUP_INTENT_KEYWORDS = ['followups', 'follow-ups', 'follow ups', 'followup', 'follow-up'];
 
 function resolveSquad(
   lower: string,
