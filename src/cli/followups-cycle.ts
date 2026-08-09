@@ -211,7 +211,14 @@ async function main() {
   const parsed = parseFollowUpRequest(opts.text, config);
   if (parsed.kind !== 'startCycle') {
     const message = parsed.kind === 'unknownSquad' || parsed.kind === 'unknownCommand' ? parsed.message : 'Invalid start command';
-    await postManagerMessage(message, opts, secrets);
+    try {
+      await postManagerMessage(message, opts, secrets);
+    } catch (err) {
+      // Still emit the parse failure code when Slack is down.
+      if (!(err instanceof SlackPostError || (err instanceof Error && 'code' in err && (err as { code?: string }).code === 'SLACK_POST_FAILED'))) {
+        throw err;
+      }
+    }
     emitFollowUpResult({
       status: 'error',
       workflow: 'followups',
@@ -241,7 +248,13 @@ async function main() {
 
   if (!loaded) {
     const msg = `No analysis artifact found for ${parsed.squadDisplayName}. Run \`analyze ${parsed.squadDisplayName} squad\` first.`;
-    await postManagerMessage(msg, opts, secrets);
+    try {
+      await postManagerMessage(msg, opts, secrets);
+    } catch (err) {
+      if (!(err instanceof SlackPostError || (err instanceof Error && 'code' in err && (err as { code?: string }).code === 'SLACK_POST_FAILED'))) {
+        throw err;
+      }
+    }
     emitFollowUpResult({
       status: 'error',
       workflow: 'followups',
@@ -274,7 +287,10 @@ async function main() {
   try {
     previewPost = await postManagerMessage(preview, opts, secrets);
   } catch (err) {
-    if (err instanceof SlackPostError) {
+    const isSlackFail =
+      err instanceof SlackPostError ||
+      (err instanceof Error && 'code' in err && (err as { code?: string }).code === 'SLACK_POST_FAILED');
+    if (isSlackFail) {
       emitFollowUpResult({
         status: 'error',
         workflow: 'followups',
