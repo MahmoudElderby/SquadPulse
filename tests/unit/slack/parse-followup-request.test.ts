@@ -13,6 +13,14 @@ describe('parseFollowUpRequest', () => {
     }
   });
 
+  it('parses singular followup startCycle trigger', () => {
+    const result = parseFollowUpRequest('followup orion', config);
+    expect(result.kind).toBe('startCycle');
+    if (result.kind === 'startCycle') {
+      expect(result.squadId).toBe('orion');
+    }
+  });
+
   it('parses approve with indexes', () => {
     const result = parseFollowUpRequest('approve 1,2', config);
     expect(result.kind).toBe('approve');

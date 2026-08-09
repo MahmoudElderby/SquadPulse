@@ -14,7 +14,7 @@ import { processManagerCommand, getApprovedPendingSend } from '../followups/proc
 import { renderDeliverySummary, countDeliveryStats } from '../followups/render-delivery-summary.js';
 import { summarizeReplies, buildCycleReplySummary } from '../followups/summarize-replies.js';
 import { renderReplySummary } from '../followups/render-reply-summary.js';
-import { postSlackMessage, dryRunPost } from '../slack/post-message.js';
+import { postSlackMessage, dryRunPost, SlackPostError } from '../slack/post-message.js';
 import { createSlackClient, deliverDirectMessage, readDmReplies } from '../slack/dm-deliver.js';
 import { pollThreadOnce, sleepMs, pollDeadline, isPastDeadline } from '../slack/poll-thread.js';
 import { isFixtureMode } from '../lib/fixture-mode.js';
@@ -211,7 +211,14 @@ async function main() {
   const parsed = parseFollowUpRequest(opts.text, config);
   if (parsed.kind !== 'startCycle') {
     const message = parsed.kind === 'unknownSquad' || parsed.kind === 'unknownCommand' ? parsed.message : 'Invalid start command';
-    await postManagerMessage(message, opts, secrets);
+    try {
+      await postManagerMessage(message, opts, secrets);
+    } catch (err) {
+      // Still emit the parse failure code when Slack is down.
+      if (!(err instanceof SlackPostError || (err instanceof Error && 'code' in err && (err as { code?: string }).code === 'SLACK_POST_FAILED'))) {
+        throw err;
+      }
+    }
     emitFollowUpResult({
       status: 'error',
       workflow: 'followups',
@@ -241,7 +248,13 @@ async function main() {
 
   if (!loaded) {
     const msg = `No analysis artifact found for ${parsed.squadDisplayName}. Run \`analyze ${parsed.squadDisplayName} squad\` first.`;
-    await postManagerMessage(msg, opts, secrets);
+    try {
+      await postManagerMessage(msg, opts, secrets);
+    } catch (err) {
+      if (!(err instanceof SlackPostError || (err instanceof Error && 'code' in err && (err as { code?: string }).code === 'SLACK_POST_FAILED'))) {
+        throw err;
+      }
+    }
     emitFollowUpResult({
       status: 'error',
       workflow: 'followups',
@@ -270,7 +283,30 @@ async function main() {
       ? renderZeroProposalsMessage(parsed.squadDisplayName)
       : renderCyclePreview(cycle);
 
-  const previewPost = await postManagerMessage(preview, opts, secrets);
+  let previewPost: { slackDelivered: boolean; messageTs?: string };
+  try {
+    previewPost = await postManagerMessage(preview, opts, secrets);
+  } catch (err) {
+    const isSlackFail =
+      err instanceof SlackPostError ||
+      (err instanceof Error && 'code' in err && (err as { code?: string }).code === 'SLACK_POST_FAILED');
+    if (isSlackFail) {
+      emitFollowUpResult({
+        status: 'error',
+        workflow: 'followups',
+        slackDelivered: false,
+        failureReason: 'SLACK_POST_FAILED',
+        cycleId: cycle.cycleId,
+        squadId: parsed.squadId,
+        proposalsGenerated: proposals.length,
+        messagesSent: 0,
+        messagesSkipped: 0,
+        messagesFailed: 0,
+        previewSnippet: preview.slice(0, 500),
+      });
+    }
+    throw err;
+  }
   const slackDelivered = previewPost.slackDelivered;
   let lastTs = previewPost.messageTs ?? opts.threadTs;
 
@@ -408,6 +444,16 @@ async function main() {
 }
 
 main().catch((err) => {
+  if (err instanceof SlackPostError) {
+    const validated = followUpRunResultSchema.parse({
+      status: 'error',
+      workflow: 'followups',
+      slackDelivered: false,
+      failureReason: 'SLACK_POST_FAILED',
+    });
+    console.log(JSON.stringify(validated, null, 2));
+    process.exit(1);
+  }
   console.error(err);
   process.exit(1);
 });
