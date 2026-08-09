@@ -4,7 +4,7 @@ import type {
   WorkItem,
 } from '../contracts/normalized-squad-snapshot.js';
 import type { JiraIssue } from './client.js';
-import { sprintElapsedFraction } from '../lib/datetime.js';
+import { sprintElapsedFraction, toRfc3339DateTime } from '../lib/datetime.js';
 
 type StatusCategory = WorkItem['statusCategory'];
 
@@ -67,8 +67,8 @@ export function normalizeIssues(input: NormalizeInput): NormalizedSquadSnapshot 
       statusCategory,
       assigneeDisplayName: issue.fields.assignee?.displayName ?? null,
       storyPoints: issue.fields.customfield_10016 ?? null,
-      createdAt: issue.fields.created,
-      updatedAt: issue.fields.updated,
+      createdAt: toRfc3339DateTime(issue.fields.created),
+      updatedAt: toRfc3339DateTime(issue.fields.updated),
       ageInCurrentStatusBusinessDays: daysSince(issue.fields.updated),
       daysSinceMeaningfulUpdate: daysSince(issue.fields.updated),
       labels: issue.fields.labels ?? [],
