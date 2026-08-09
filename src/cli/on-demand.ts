@@ -5,7 +5,9 @@ import { resolveSecrets } from '../config/secrets.js';
 import { resolveConfigPath } from '../config/resolve-path.js';
 import { parseSlackRequest } from '../slack/parse-request.js';
 import { analyzeSnapshot } from '../analysis/engine.js';
+import { applyScopeToSnapshot } from '../analysis/scope.js';
 import { renderSquadReport } from '../report/render-squad-report.js';
+import { formatScopeSummary, isScopeActive } from '../contracts/analysis-scope.js';
 import { postSlackMessage, dryRunPost } from '../slack/post-message.js';
 import { fetchSquadSnapshot } from '../jira/fetch-squad.js';
 import { JiraClient, JiraAuthError } from '../jira/client.js';
@@ -121,6 +123,17 @@ async function main() {
     throw err;
   }
 
+  // Portable scope from free text (person, ticket keys, …) — same model for future Jira prompts
+  let scopeNotes: string[] = [];
+  if (isScopeActive(parsed.scope)) {
+    const scoped = applyScopeToSnapshot(snapshot, parsed.scope);
+    snapshot = scoped.snapshot;
+    scopeNotes = scoped.notes;
+    if (scopeNotes.length) {
+      console.error(`Scope applied: ${scopeNotes.join('; ')}`);
+    }
+  }
+
   let findings = analyzeSnapshot(snapshot, squadConfig);
   let contextual;
 
@@ -138,6 +151,8 @@ async function main() {
     contextual,
     intent: parsed.intent,
     includeDrafts: opts.includeDrafts,
+    scope: parsed.scope,
+    scopeSummary: formatScopeSummary(parsed.scope) ?? undefined,
   });
 
   let slackDelivered = false;

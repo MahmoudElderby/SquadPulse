@@ -16,11 +16,12 @@ describe('schedule guard', () => {
   });
 
   it('skips on non-working day without force', () => {
-    const weekendConfig = {
+    // workingDays empty → never a working day
+    const noDaysConfig = {
       ...config,
-      schedule: { ...config.schedule, workingDays: [6, 7] },
+      schedule: { ...config.schedule, workingDays: [] as number[] },
     };
-    const result = checkScheduleGuard(weekendConfig, {});
+    const result = checkScheduleGuard(noDaysConfig, {});
     expect(result.shouldRun).toBe(false);
     expect(result.reason).toContain('working day');
   });

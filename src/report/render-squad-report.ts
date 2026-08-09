@@ -23,10 +23,20 @@ export interface SquadReportOptions {
   contextual?: ContextualAnalysis;
   intent?: ReportIntent;
   includeDrafts?: boolean;
+  /** Portable analysis scope that was applied (if any) */
+  scope?: import('../contracts/analysis-scope.js').AnalysisScope;
+  scopeSummary?: string;
 }
 
 export function renderSquadReport(options: SquadReportOptions): string {
-  const { snapshot, findings, contextual, intent = 'full', includeDrafts = false } = options;
+  const {
+    snapshot,
+    findings,
+    contextual,
+    intent = 'full',
+    includeDrafts = false,
+    scopeSummary,
+  } = options;
   const sections: string[] = [];
   const tz = snapshot.timezone;
   const map = indexWorkItems(snapshot);
@@ -35,6 +45,9 @@ export function renderSquadReport(options: SquadReportOptions): string {
   sections.push(`*${snapshot.displayName} Squad — ${findings.health.status}*`);
   sections.push(buildSubheader(snapshot, findings));
   sections.push(`_${formatReportTimestamp(tz)}_`);
+  if (scopeSummary) {
+    sections.push(`_Focus: ${scopeSummary}_`);
+  }
   sections.push('');
 
   if (intent === 'full' || intent === 'sprint') {

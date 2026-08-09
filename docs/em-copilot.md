@@ -47,6 +47,22 @@ Config → Jira fetch (or fixture) → Normalize → Deterministic rules → Opt
 
 Health classification is **deterministic only**. Follow-up drafts are **manager-reviewed**, never auto-sent to team members.
 
+### Portable request scope
+
+Free-text prompts (Slack today; Jira/agent prompts later) parse into:
+
+```
+{ squad, intent, scope? }
+```
+
+`scope` can include `issueKeys`, `assignees`, `labels`. Applied **after** squad Jira fetch, before rules.
+
+Examples:
+
+- `analyze Orion tickets focus on Mohamed Mostafa tickets`
+- `analyze Cobra MTN-12345`
+- JSON-shaped request later: `{ "squadId": "orion", "intent": "full", "scope": { "issueKeys": ["MTN-1"] } }`
+
 ## Troubleshooting
 
 | RunResult code | Meaning |

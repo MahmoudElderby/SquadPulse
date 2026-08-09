@@ -43,4 +43,12 @@ describe('Slack request parser', () => {
     const result = parseSlackRequest('hello there Payments', config);
     expect(result.kind).toBe('unknownIntent');
   });
+
+  it('attaches empty-agnostic scope when no person/ticket focus', () => {
+    const result = parseSlackRequest('analyze Storefront squad', config);
+    expect(result.kind).toBe('analysis');
+    if (result.kind === 'analysis') {
+      expect(result.scope).toBeUndefined();
+    }
+  });
 });
