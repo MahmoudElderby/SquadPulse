@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/communication-assistant/follow-up-slack-request.schema.json",
+  "title": "ParsedFollowUpSlackRequest",
+  "description": "Result of parsing a manager Slack message for the follow-up workflow.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["kind", "squadId"],
+      "properties": {
+        "kind": { "const": "startCycle" },
+        "rawText": { "type": "string" },
+        "squadId": { "type": "string" },
+        "squadDisplayName": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["approve", "edit", "ignore", "approveAll", "status", "draftAnother", "closeCycle"] },
+        "rawText": { "type": "string" },
+        "proposalIndexes": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "editedText": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["kind", "message"],
+      "properties": {
+        "kind": {
+          "enum": ["unknownSquad", "unknownCommand", "noActiveCycle", "ambiguousSquad"]
+        },
+        "rawText": { "type": "string" },
+        "message": { "type": "string" },
+        "configuredSquads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["displayName", "aliases"],
+            "properties": {
+              "displayName": { "type": "string" },
+              "aliases": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "supportedCommands": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

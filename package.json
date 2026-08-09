@@ -12,7 +12,8 @@
     "analyze:on-demand": "tsx src/cli/on-demand.ts",
     "analyze:daily": "tsx src/cli/daily.ts",
     "analyze:fixture": "tsx src/cli/analyze-fixture.ts",
-    "validate:contextual": "tsx src/cli/validate-contextual.ts"
+    "validate:contextual": "tsx src/cli/validate-contextual.ts",
+    "followups:cycle": "tsx src/cli/followups-cycle.ts"
   },
   "dependencies": {
     "@slack/web-api": "^7.8.0",

@@ -1,0 +1,22 @@
+{
+  "replies": [
+    {
+      "proposalIndex": 1,
+      "text": "Still blocked waiting on API contract from platform team — no ETA yet",
+      "userId": "U001",
+      "ts": "1730000001.000100"
+    },
+    {
+      "proposalIndex": 2,
+      "text": "Working on it, should be done by Friday",
+      "userId": "U002",
+      "ts": "1730000002.000100"
+    },
+    {
+      "proposalIndex": 3,
+      "text": "👍",
+      "userId": "U001",
+      "ts": "1730000003.000100"
+    }
+  ]
+}

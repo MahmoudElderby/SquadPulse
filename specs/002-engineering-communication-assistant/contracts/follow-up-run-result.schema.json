@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/communication-assistant/follow-up-run-result.schema.json",
+  "title": "FollowUpRunResult",
+  "description": "Machine-readable result emitted at end of followups:cycle for Cursor run history.",
+  "type": "object",
+  "required": ["status", "workflow", "slackDelivered"],
+  "additionalProperties": false,
+  "properties": {
+    "status": { "enum": ["success", "error", "partial"] },
+    "workflow": { "const": "followups" },
+    "slackDelivered": { "type": "boolean" },
+    "cycleId": { "type": "string", "format": "uuid" },
+    "squadId": { "type": "string" },
+    "proposalsGenerated": { "type": "integer", "minimum": 0 },
+    "messagesSent": { "type": "integer", "minimum": 0 },
+    "messagesSkipped": { "type": "integer", "minimum": 0 },
+    "messagesFailed": { "type": "integer", "minimum": 0 },
+    "failureReason": { "type": "string" },
+    "previewSnippet": { "type": "string", "maxLength": 500 }
+  }
+}

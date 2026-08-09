@@ -108,3 +108,10 @@ squads:
     teamMemberSlackMap:
       Sam Rivera: U003
       Casey Kim: U004
+
+communicationAssistant:
+  analysisFreshnessHours: 24
+  maxProposalsPerCycle: 10
+  cycleMaxMinutes: 60
+  pollIntervalSeconds: 5
+  analysisArtifactDir: .squadpulse/analysis

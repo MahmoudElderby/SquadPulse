@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { validateConfig } from '../../../src/config/validate.js';
-import { loadConfigRaw } from '../../../src/config/load.js';
+import { loadConfigRaw, loadConfig } from '../../../src/config/load.js';
+import { resolveCommunicationAssistant } from '../../../src/contracts/config.js';
 
 describe('config validation', () => {
   it('validates example config successfully', () => {
@@ -36,5 +37,28 @@ describe('config validation', () => {
     delete squads[0].kanbanBoardId;
     const result = validateConfig({ ...raw, squads });
     expect(result.errors[0]).toMatch(/Storefront|storefront/);
+  });
+});
+
+describe('communicationAssistant config', () => {
+  it('accepts communicationAssistant block in example config', () => {
+    const raw = loadConfigRaw('config/em-copilot.example.yml');
+    const result = validateConfig(raw);
+    expect(result.valid).toBe(true);
+    expect(result.config?.communicationAssistant?.analysisFreshnessHours).toBe(24);
+  });
+
+  it('applies defaults when block omitted', () => {
+    const config = loadConfig('config/em-copilot.example.yml');
+    const ca = resolveCommunicationAssistant({ ...config, communicationAssistant: undefined });
+    expect(ca.maxProposalsPerCycle).toBe(10);
+    expect(ca.analysisArtifactDir).toBe('.squadpulse/analysis');
+  });
+
+  it('rejects invalid analysisFreshnessHours', () => {
+    const raw = loadConfigRaw('config/em-copilot.example.yml') as Record<string, unknown>;
+    raw.communicationAssistant = { analysisFreshnessHours: 0 };
+    const result = validateConfig(raw);
+    expect(result.valid).toBe(false);
   });
 });

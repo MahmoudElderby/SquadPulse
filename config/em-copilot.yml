@@ -14,6 +14,13 @@ schedule:
   workingDays: [1, 2, 3, 4, 5]
   dailyBriefingTime: "08:30"
 
+communicationAssistant:
+  analysisFreshnessHours: 24
+  maxProposalsPerCycle: 10
+  cycleMaxMinutes: 60
+  pollIntervalSeconds: 5
+  analysisArtifactDir: .squadpulse/analysis
+
 secrets:
   envVarNames:
     jiraBaseUrl: JIRA_BASE_URL
@@ -64,6 +71,8 @@ squads:
       staleInProgressBusinessDays: 5
       noMeaningfulUpdateBusinessDays: 3
       maxInProgressPerPerson: 3
+    teamMemberSlackMap:
+      Abdelrahman Ahmed: U0BNXSZQKV3
 
   - id: cobra
     displayName: Cobra
@@ -107,3 +116,5 @@ squads:
       staleInProgressBusinessDays: 5
       noMeaningfulUpdateBusinessDays: 3
       maxInProgressPerPerson: 3
+    teamMemberSlackMap:
+      Abdelrahman Ahmed: U0BNXSZQKV3

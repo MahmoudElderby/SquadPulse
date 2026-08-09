@@ -1,0 +1,79 @@
+jira:
+  baseUrl: https://example.atlassian.net
+
+slack:
+  managerDestination: C0123456789
+  onDemandReplyInThread: true
+
+communicationAssistant:
+  analysisFreshnessHours: 24
+  maxProposalsPerCycle: 10
+  cycleMaxMinutes: 60
+  pollIntervalSeconds: 5
+  analysisArtifactDir: .squadpulse/analysis
+
+squads:
+  - id: orion
+    displayName: Orion
+    aliases:
+      - orion squad
+    projectKeys:
+      - MTN
+    scrumBoardId: 301
+    statusCategories:
+      notStarted:
+        - To Do
+      inProgress:
+        - In Progress
+      blocked:
+        - Blocked
+      reviewOrHandoff:
+        - In Review
+      done:
+        - Done
+    priorityMapping:
+      P0:
+        - Highest
+      P1:
+        - High
+      P2:
+        - Medium
+      P3:
+        - Low
+      P4:
+        - Lowest
+    teamMemberSlackMap:
+      Alex Chen: U001
+      Jordan Lee: U002
+
+  - id: payments
+    displayName: Payments
+    aliases:
+      - pay
+    projectKeys:
+      - PAY
+    scrumBoardId: 201
+    statusCategories:
+      notStarted:
+        - Open
+      inProgress:
+        - In Progress
+      blocked:
+        - Impediment
+      reviewOrHandoff:
+        - Code Review
+      done:
+        - Done
+    priorityMapping:
+      P0:
+        - Critical
+      P1:
+        - Major
+      P2:
+        - Minor
+      P3:
+        - Trivial
+      P4:
+        - Lowest
+    teamMemberSlackMap:
+      Sam Rivera: U003

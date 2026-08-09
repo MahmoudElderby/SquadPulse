@@ -79,6 +79,42 @@
       "minItems": 2,
       "maxItems": 2,
       "items": { "$ref": "#/$defs/squad" }
+    },
+    "communicationAssistant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "analysisFreshnessHours": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 24,
+          "description": "Hours after which analysis is flagged possibly stale (FR-009)"
+        },
+        "maxProposalsPerCycle": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Maximum follow-up proposals per cycle (FR-019)"
+        },
+        "cycleMaxMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 60,
+          "description": "Poll loop maximum duration in minutes"
+        },
+        "pollIntervalSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 5,
+          "description": "Manager thread poll interval in seconds"
+        },
+        "analysisArtifactDir": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".squadpulse/analysis",
+          "description": "Directory for SquadAnalysisArtifact JSON files"
+        }
+      }
     }
   },
   "$defs": {

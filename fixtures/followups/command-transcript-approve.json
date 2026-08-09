@@ -1,0 +1,10 @@
+{
+  "commands": [
+    "approve 1,2",
+    "edit 3: Can you share an ETA for the estimate?",
+    "ignore 4",
+    "approve all",
+    "status",
+    "done"
+  ]
+}

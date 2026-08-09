@@ -1,0 +1,100 @@
+{
+  "squadId": "orion",
+  "squadDisplayName": "Orion",
+  "analyzedAt": "2026-08-08T10:00:00.000Z",
+  "workflow": "on-demand",
+  "snapshot": {
+    "sprints": [
+      {
+        "id": 100,
+        "name": "Orion Sprint 12",
+        "state": "active",
+        "startDate": "2026-07-28T09:00:00.000Z",
+        "endDate": "2026-08-11T17:00:00.000Z"
+      }
+    ],
+    "workItems": [
+      {
+        "key": "MTN-101",
+        "summary": "API gateway migration",
+        "status": "In Progress",
+        "priorityTier": "P1",
+        "assigneeDisplayName": "Alex Chen",
+        "storyPoints": 5,
+        "updatedAt": "2026-07-25T10:00:00.000Z"
+      },
+      {
+        "key": "MTN-102",
+        "summary": "Payment webhook handler",
+        "status": "Blocked",
+        "priorityTier": "P0",
+        "assigneeDisplayName": "Jordan Lee",
+        "storyPoints": 3,
+        "updatedAt": "2026-08-01T10:00:00.000Z"
+      },
+      {
+        "key": "MTN-103",
+        "summary": "Dashboard widgets",
+        "status": "In Progress",
+        "priorityTier": "P2",
+        "assigneeDisplayName": "Alex Chen",
+        "storyPoints": null,
+        "updatedAt": "2026-08-05T10:00:00.000Z"
+      },
+      {
+        "key": "MTN-104",
+        "summary": "Sprint scope creep item",
+        "status": "In Progress",
+        "priorityTier": "P1",
+        "assigneeDisplayName": "Jordan Lee",
+        "storyPoints": 2,
+        "updatedAt": "2026-08-06T10:00:00.000Z"
+      }
+    ]
+  },
+  "deterministicFindings": {
+    "squadId": "orion",
+    "health": {
+      "status": "At Risk",
+      "reasons": ["Stale in-progress work", "Unowned blocker"],
+      "deliveryRiskCount": 3
+    },
+    "deliveryRisks": [
+      {
+        "category": "staleInProgress",
+        "issueKeys": ["MTN-101"],
+        "evidence": ["MTN-101 in progress for 12+ business days without meaningful update"],
+        "impact": "Delivery risk on P1 migration work",
+        "recommendedAction": "Request progress update",
+        "impactScore": 8
+      },
+      {
+        "category": "unplannedScope",
+        "issueKeys": ["MTN-104"],
+        "evidence": ["MTN-104 added after sprint start"],
+        "impact": "Sprint capacity at risk",
+        "recommendedAction": "Clarify sprint risk",
+        "impactScore": 6
+      }
+    ],
+    "blockers": [
+      {
+        "issueKey": "MTN-102",
+        "blockedByKeys": ["EXT-50"],
+        "dependencyOwner": null,
+        "isOwned": false
+      }
+    ],
+    "hygieneFindings": [
+      {
+        "issueKey": "MTN-103",
+        "category": "missingEstimate",
+        "evidence": "No story points on in-progress MTN-103",
+        "suggestedAction": "Add estimate"
+      }
+    ],
+    "flowSignals": [],
+    "managerActions": []
+  },
+  "limitations": []
+}

@@ -16,3 +16,6 @@ Thumbs.db
 # OS / tooling
 *.tsbuildinfo
 .turbo/
+
+# SquadPulse runtime artifacts (001 analysis, 002 cycles)
+.squadpulse/

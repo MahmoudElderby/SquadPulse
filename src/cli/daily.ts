@@ -15,6 +15,7 @@ import { exitWithRunResult, emitRunResult } from '../lib/run-result.js';
 import { formatReportDate, nowInTimezone } from '../lib/datetime.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { validateContextualAnalysis } from '../ai/validate-contextual.js';
+import { writeSquadAnalysisArtifact } from '../analysis/write-artifact.js';
 import type { NormalizedSquadSnapshot } from '../contracts/normalized-squad-snapshot.js';
 import type { DeterministicFindings } from '../contracts/deterministic-findings.js';
 
@@ -101,6 +102,18 @@ async function main() {
       findingsList.push({ squadId: squad.id, findings });
       squadsAnalyzed.push(squad.id);
       if (snapshot.limitations) limitations.push(...snapshot.limitations);
+
+      try {
+        writeSquadAnalysisArtifact({
+          config,
+          snapshot,
+          findings,
+          contextual: undefined,
+          workflow: 'daily',
+        });
+      } catch (err) {
+        console.error(`Failed to write artifact for ${squad.id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
     } catch (err) {
       if (err instanceof JiraAuthError) {
         exitWithRunResult({

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/communication-assistant/follow-up-cycle.schema.json",
+  "title": "FollowUpCycle",
+  "description": "In-memory cycle state for a single followups:cycle script execution.",
+  "type": "object",
+  "required": [
+    "cycleId",
+    "squadId",
+    "managerThreadTs",
+    "startedAt",
+    "analysisConsumed",
+    "proposals",
+    "inCycleContext",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "cycleId": { "type": "string", "format": "uuid" },
+    "squadId": { "type": "string" },
+    "managerThreadTs": { "type": "string" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "analysisConsumed": {
+      "type": "object",
+      "required": ["artifactPath", "analyzedAt"],
+      "properties": {
+        "artifactPath": { "type": "string" },
+        "analyzedAt": { "type": "string", "format": "date-time" },
+        "possiblyStale": { "type": "boolean" }
+      }
+    },
+    "proposals": {
+      "type": "array",
+      "description": "Runtime length capped by communicationAssistant.maxProposalsPerCycle (default 10); schema does not hardcode maxItems so configurable caps validate correctly.",
+      "items": { "$ref": "./follow-up-proposal.schema.json" }
+    },
+    "overflowCount": { "type": "integer", "minimum": 0 },
+    "deliveries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/approvedMessageDelivery" }
+    },
+    "inCycleContext": { "$ref": "#/$defs/inCycleContext" },
+    "dataLimitations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dataLimitation" }
+    },
+    "status": { "enum": ["active", "closing", "closed"] }
+  },
+  "$defs": {
+    "approvedMessageDelivery": {
+      "type": "object",
+      "required": ["proposalIndex", "finalMessageText", "deliveryStatus"],
+      "properties": {
+        "proposalIndex": { "type": "integer", "minimum": 1 },
+        "finalMessageText": { "type": "string" },
+        "recipientSlackUserId": { "type": "string" },
+        "dmChannelId": { "type": "string" },
+        "sentMessageTs": { "type": "string" },
+        "deliveryStatus": { "enum": ["sent", "failed", "skipped"] },
+        "failureReason": { "type": "string" }
+      }
+    },
+    "inCycleContext": {
+      "type": "object",
+      "required": ["askedPairs", "capturedReplies"],
+      "properties": {
+        "askedPairs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["engineer", "issueKey", "reasonType", "questionSummary"],
+            "properties": {
+              "engineer": { "type": "string" },
+              "issueKey": { "type": "string" },
+              "reasonType": { "type": "string" },
+              "questionSummary": { "type": "string" },
+              "sentAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "capturedReplies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["engineer", "issueKey", "extraction"],
+            "properties": {
+              "engineer": { "type": "string" },
+              "issueKey": { "type": "string" },
+              "extraction": { "type": "string" },
+              "capturedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    },
+    "dataLimitation": {
+      "type": "object",
+      "required": ["scope", "reason"],
+      "properties": {
+        "scope": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

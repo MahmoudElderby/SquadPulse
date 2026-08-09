@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/communication-assistant/squad-analysis-artifact.schema.json",
+  "title": "SquadAnalysisArtifact",
+  "description": "Structured EngPilot analysis output consumed by the follow-up cycle. Written by feature 001 on successful analysis runs.",
+  "type": "object",
+  "required": ["squadId", "squadDisplayName", "analyzedAt", "workflow", "snapshot", "deterministicFindings"],
+  "additionalProperties": false,
+  "properties": {
+    "squadId": { "type": "string", "minLength": 1 },
+    "squadDisplayName": { "type": "string", "minLength": 1 },
+    "analyzedAt": { "type": "string", "format": "date-time" },
+    "workflow": { "enum": ["on-demand", "daily"] },
+    "snapshot": {
+      "type": "object",
+      "required": ["workItems"],
+      "properties": {
+        "sprints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "state"],
+            "properties": {
+              "id": { "type": "integer" },
+              "name": { "type": "string" },
+              "state": { "enum": ["active", "closed", "future"] },
+              "startDate": { "type": "string", "format": "date-time" },
+              "endDate": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "workItems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "summary", "status", "priorityTier"],
+            "properties": {
+              "key": { "type": "string" },
+              "summary": { "type": "string" },
+              "status": { "type": "string" },
+              "priorityTier": { "enum": ["P0", "P1", "P2", "P3", "P4"] },
+              "assigneeDisplayName": { "type": ["string", "null"] },
+              "storyPoints": { "type": ["number", "null"] },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    },
+    "deterministicFindings": {
+      "$ref": "../../001-em-copilot/contracts/deterministic-findings.schema.json"
+    },
+    "contextualAnalysis": {
+      "$ref": "../../001-em-copilot/contracts/contextual-analysis.schema.json"
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dataLimitation" }
+    }
+  },
+  "$defs": {
+    "dataLimitation": {
+      "type": "object",
+      "required": ["scope", "reason"],
+      "properties": {
+        "scope": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

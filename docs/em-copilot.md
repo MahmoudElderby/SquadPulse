@@ -38,6 +38,18 @@ Cursor’s Atlassian/Jira MCP is optional for human-agent chats; automations do 
 
 - [On-demand Slack](./automations/on-demand-slack.md)
 - [Daily briefing](./automations/daily-briefing.md)
+- [Follow-ups cycle](./automations/followups-slack.md) — Engineering Communication Assistant (feature 002)
+
+## Engineering Communication Assistant
+
+Manager-approved follow-up DMs powered by squad analysis artifacts. See [followups-slack automation](./automations/followups-slack.md) and [quickstart](../specs/002-engineering-communication-assistant/quickstart.md).
+
+| Command | Purpose |
+|---------|---------|
+| `npm run followups:cycle -- --text "followups Orion" --fixture --dry-run` | Offline proposal preview |
+| `npm run followups:cycle -- --text "..." --slack-channel $CH --thread-ts $TS --poll` | Live blocking cycle |
+
+Configuration: optional `communicationAssistant` block in `config/em-copilot.yml` (defaults documented in example config).
 
 ## Architecture
 

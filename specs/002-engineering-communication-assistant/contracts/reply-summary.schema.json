@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/communication-assistant/reply-summary.schema.json",
+  "title": "CycleReplySummary",
+  "description": "Manager-facing reply summary produced on status command.",
+  "type": "object",
+  "required": ["groupedByEngineer"],
+  "additionalProperties": false,
+  "properties": {
+    "groupedByEngineer": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/engineerReplyGroup" }
+    },
+    "dataLimitations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dataLimitation" }
+    }
+  },
+  "$defs": {
+    "engineerReplyGroup": {
+      "type": "object",
+      "required": ["engineerDisplayName", "items"],
+      "properties": {
+        "engineerDisplayName": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/replySummaryItem" }
+        }
+      }
+    },
+    "replySummaryItem": {
+      "type": "object",
+      "required": ["issueKey", "extraction", "recommendation", "readStatus"],
+      "properties": {
+        "issueKey": { "type": "string" },
+        "extraction": { "type": "string" },
+        "blockerSignal": { "type": "string" },
+        "recommendation": {
+          "enum": [
+            "no further follow-up needed",
+            "another follow-up suggested (draft on request)",
+            "manager attention recommended"
+          ]
+        },
+        "readStatus": {
+          "enum": ["read", "no reply yet within cycle window", "unreadable"]
+        },
+        "unreadableReason": { "type": "string" }
+      }
+    },
+    "dataLimitation": {
+      "type": "object",
+      "required": ["scope", "reason"],
+      "properties": {
+        "scope": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

@@ -80,7 +80,28 @@ export const emCopilotConfigSchema = z.object({
     })
     .optional(),
   squads: z.array(squadSchema).length(2),
+  communicationAssistant: z
+    .object({
+      analysisFreshnessHours: z.number().int().min(1).default(24),
+      maxProposalsPerCycle: z.number().int().min(1).default(10),
+      cycleMaxMinutes: z.number().int().min(1).default(60),
+      pollIntervalSeconds: z.number().int().min(1).default(5),
+      analysisArtifactDir: z.string().min(1).default('.squadpulse/analysis'),
+    })
+    .optional(),
 });
 
 export type EmCopilotConfig = z.infer<typeof emCopilotConfigSchema>;
 export type SquadConfig = z.infer<typeof squadSchema>;
+
+export const communicationAssistantDefaults = {
+  analysisFreshnessHours: 24,
+  maxProposalsPerCycle: 10,
+  cycleMaxMinutes: 60,
+  pollIntervalSeconds: 5,
+  analysisArtifactDir: '.squadpulse/analysis',
+} as const;
+
+export function resolveCommunicationAssistant(config: EmCopilotConfig) {
+  return { ...communicationAssistantDefaults, ...config.communicationAssistant };
+}

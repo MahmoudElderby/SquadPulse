@@ -16,6 +16,7 @@ import { exitWithRunResult, emitRunResult } from '../lib/run-result.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { validateContextualAnalysis } from '../ai/validate-contextual.js';
 import { mergeContextualAnalysis } from '../ai/merge-contextual.js';
+import { writeSquadAnalysisArtifact } from '../analysis/write-artifact.js';
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -179,6 +180,18 @@ async function main() {
   } else {
     dryRunPost(report);
     console.log(report);
+  }
+
+  try {
+    writeSquadAnalysisArtifact({
+      config,
+      snapshot,
+      findings,
+      contextual,
+      workflow: 'on-demand',
+    });
+  } catch (err) {
+    console.error(`Failed to write analysis artifact: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   exitWithRunResult({

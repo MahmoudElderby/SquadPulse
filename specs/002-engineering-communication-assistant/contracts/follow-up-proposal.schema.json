@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://squadpulse.local/contracts/communication-assistant/follow-up-proposal.schema.json",
+  "title": "FollowUpProposal",
+  "description": "Single follow-up proposal in a cycle preview or AI compose output.",
+  "type": "object",
+  "required": [
+    "index",
+    "issueKey",
+    "engineerDisplayName",
+    "reasonType",
+    "draftMessage",
+    "confidence",
+    "urgency",
+    "evidence",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "index": { "type": "integer", "minimum": 1 },
+    "issueKey": { "type": "string", "minLength": 1 },
+    "engineerDisplayName": { "type": "string", "minLength": 1 },
+    "slackUserId": { "type": "string", "pattern": "^U[A-Z0-9]+$" },
+    "reasonType": {
+      "enum": [
+        "progress-update",
+        "blocker-clarification",
+        "estimate-reminder",
+        "jira-status-reminder",
+        "dependency-follow-up",
+        "sprint-risk-clarification"
+      ]
+    },
+    "draftMessage": { "type": "string", "minLength": 1, "maxLength": 3000 },
+    "confidence": { "enum": ["Low", "Medium", "High"] },
+    "urgency": { "enum": ["Low", "Medium", "High"] },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidenceRef" }
+    },
+    "status": {
+      "enum": ["pending", "approved", "ignored", "sent", "failed", "skipped"]
+    },
+    "editedMessage": { "type": "string", "maxLength": 3000 }
+  },
+  "$defs": {
+    "evidenceRef": {
+      "type": "object",
+      "required": ["source", "issueKey", "summary"],
+      "properties": {
+        "source": {
+          "enum": ["deliveryRisk", "blocker", "hygieneFinding", "contextualDraft"]
+        },
+        "issueKey": { "type": "string" },
+        "summary": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
