@@ -83,7 +83,23 @@ export function formatRiskBlock(risk: DeliveryRisk, map: Map<string, WorkItem>, 
     meta.push(`Priority: ${item.priorityTier}`);
   }
   lines.push(`   ${meta.join(' · ')}`);
-  lines.push(`   Why: ${riskLabel(risk.category)} — ${risk.impact}`);
+
+  // Merged risks: evidence[] holds one friendly line per rule type
+  const whyLines =
+    risk.evidence.length > 1
+      ? risk.evidence
+      : risk.evidence.length === 1 && risk.evidence[0].includes(' — ')
+        ? risk.evidence
+        : [`${riskLabel(risk.category)} — ${risk.impact}`];
+
+  if (whyLines.length === 1) {
+    lines.push(`   Why: ${whyLines[0]}`);
+  } else {
+    lines.push('   Why:');
+    for (const w of whyLines) {
+      lines.push(`   • ${w}`);
+    }
+  }
   lines.push(`   You: ${humanizeAction(risk.recommendedAction, item, key)}`);
   return lines;
 }
@@ -165,29 +181,43 @@ export function formatActionLine(
     owner === 'Unassigned'
       ? `Assign an owner for \`${key}\` — ${title}`
       : `Ask *${owner}* about \`${key}\` — ${title}`;
-  // Prefer person-first phrasing; keep rule action as clue for "why"
-  return `${action.priority}. ${ask}\n   (${riskHintFromAction(action.action)})`;
+  const hint = actionHint(action, item);
+  return hint
+    ? `${action.priority}. ${ask}\n   (${hint})`
+    : `${action.priority}. ${ask}`;
 }
 
 function humanizeAction(action: string, item: WorkItem | undefined, key: string): string {
   const owner = ownerLine(item);
-  if (/status update/i.test(action)) {
+  if (/status update|status and blockers|expected completion/i.test(action)) {
     if (owner === 'Unassigned') {
       return `Assign an owner and request status, blockers, and expected completion for \`${key}\``;
     }
     return `Ask *${owner}* for status, any blocker, and expected completion date`;
   }
-  if (/assign/i.test(action) && owner === 'Unassigned') {
+  if (/assign an owner|unassigned/i.test(action) && owner === 'Unassigned') {
     return `Assign an owner to drive \`${key}\``;
+  }
+  if (/check with assignee/i.test(action) && owner !== 'Unassigned') {
+    return `Ask *${owner}* for status, any blocker, and expected completion date`;
   }
   return action.replace(key, `\`${key}\``);
 }
 
-function riskHintFromAction(action: string): string {
-  if (/status update/i.test(action)) return 'needs status update';
-  if (/assign/i.test(action)) return 'needs owner';
-  if (/blocker|escalat/i.test(action)) return 'blocker / dependency';
-  return action.length > 60 ? `${action.slice(0, 57)}…` : action;
+function actionHint(action: ManagerAction, item: WorkItem | undefined): string | null {
+  const text = action.action;
+  const parts: string[] = [];
+  if (!item?.assigneeDisplayName && /assign|unassigned|owner/i.test(text)) {
+    parts.push('needs owner');
+  }
+  if (/status update|status and blockers|expected completion|check with assignee/i.test(text)) {
+    parts.push('needs status update');
+  }
+  if (/blocker|escalat|dependency/i.test(text) && !parts.includes('needs status update')) {
+    parts.push('blocker / dependency');
+  }
+  if (!parts.length) return null;
+  return parts.join(' · ');
 }
 
 /** Drop redundant filter-vs-agile notes when boardFilterJql is intentional source of truth. */

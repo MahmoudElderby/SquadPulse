@@ -13,11 +13,15 @@ import { detectStatusThrash } from './rules/status-thrash.js';
 import { detectUnplannedScope } from './rules/unplanned-scope.js';
 import { detectHygiene } from './rules/hygiene.js';
 import { detectFlowSignals } from './rules/flow.js';
+import {
+  mergeRisksByTicket,
+  buildManagerActionsFromRisks,
+} from './merge-by-ticket.js';
 
-function dedupeRisks(risks: DeliveryRisk[]): DeliveryRisk[] {
+function dedupeExactRisks(risks: DeliveryRisk[]): DeliveryRisk[] {
   const seen = new Set<string>();
   return risks.filter((r) => {
-    const key = `${r.category}:${r.issueKeys.sort().join(',')}`;
+    const key = `${r.category}:${r.issueKeys.slice().sort().join(',')}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -49,24 +53,13 @@ function buildKeyFacts(snapshot: NormalizedSquadSnapshot): string[] {
   return facts;
 }
 
-function buildManagerActions(risks: DeliveryRisk[]): DeterministicFindings['managerActions'] {
-  return risks
-    .sort((a, b) => b.impactScore - a.impactScore)
-    .slice(0, 5)
-    .map((r, i) => ({
-      priority: i + 1,
-      action: r.recommendedAction,
-      relatedIssueKeys: r.issueKeys,
-    }));
-}
-
 export function analyzeSnapshot(
   snapshot: NormalizedSquadSnapshot,
   squad: SquadConfig,
 ): DeterministicFindings {
   const blockerResult = detectUnownedBlocker(snapshot);
 
-  const allRisks = dedupeRisks([
+  const rawRisks = dedupeExactRisks([
     ...detectStaleInProgress(snapshot, squad),
     ...detectNoRecentUpdate(snapshot, squad),
     ...blockerResult.risks,
@@ -78,7 +71,9 @@ export function analyzeSnapshot(
     ...detectUnplannedScope(snapshot),
   ]);
 
-  const health = classifyHealth(allRisks, snapshot);
+  // One card / one manager action per ticket (rule types combined)
+  const deliveryRisks = mergeRisksByTicket(rawRisks);
+  const health = classifyHealth(deliveryRisks, snapshot);
   const hygieneFindings = detectHygiene(snapshot);
   const flowSignals = detectFlowSignals(snapshot, squad);
 
@@ -86,11 +81,11 @@ export function analyzeSnapshot(
     squadId: snapshot.squadId,
     health,
     keyFacts: buildKeyFacts(snapshot),
-    deliveryRisks: allRisks.sort((a, b) => b.impactScore - a.impactScore),
+    deliveryRisks,
     blockers: blockerResult.blockers,
     hygieneFindings,
     flowSignals,
-    managerActions: buildManagerActions(allRisks),
+    managerActions: buildManagerActionsFromRisks(deliveryRisks),
     limitations: snapshot.limitations,
   };
 }
